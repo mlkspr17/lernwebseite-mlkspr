@@ -1,3 +1,1450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernpfad — Deine Lernplattform</title>
+<meta name="description" content="Lernpfad: Fächer lernen, Lernkarten üben, Quizze lösen und den eigenen Fortschritt verfolgen.">
+<style>
+/* ==========================================================================
+   LERNPFAD — Design Tokens
+   Palette: tiefes Indigo (Fokus) + warmes Korall (Energie/Belohnung)
+   ========================================================================== */
+
+:root {
+  /* Farben — Light */
+  --color-bg: #F6F7FB;
+  --color-bg-alt: #EFF1F8;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #FAFBFE;
+  --color-border: #E3E6F0;
+  --color-text: #1B1D2B;
+  --color-text-muted: #64687C;
+  --color-text-faint: #9296A8;
+
+  --color-primary: #4C46E0;
+  --color-primary-dark: #3934B0;
+  --color-primary-tint: #EEEDFC;
+  --color-accent: #FF6B4A;
+  --color-accent-tint: #FFEDE7;
+  --color-success: #1DA463;
+  --color-success-tint: #E4F6EC;
+  --color-danger: #E64848;
+  --color-danger-tint: #FDEAEA;
+  --color-gold: #E0A82E;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(27, 29, 43, 0.06);
+  --shadow-md: 0 6px 20px rgba(27, 29, 43, 0.08);
+  --shadow-lg: 0 16px 40px rgba(27, 29, 43, 0.12);
+
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --transition-fast: 150ms cubic-bezier(.4,0,.2,1);
+  --transition-mid: 260ms cubic-bezier(.4,0,.2,1);
+
+  --sidebar-width: 244px;
+}
+
+[data-theme="dark"] {
+  --color-bg: #14151F;
+  --color-bg-alt: #191A26;
+  --color-surface: #1E1F2E;
+  --color-surface-2: #23243380;
+  --color-border: #2E3042;
+  --color-text: #EDEEF6;
+  --color-text-muted: #A5A8BC;
+  --color-text-faint: #6D7086;
+
+  --color-primary: #6E68F5;
+  --color-primary-dark: #5A54E0;
+  --color-primary-tint: #26244A;
+  --color-accent: #FF8265;
+  --color-accent-tint: #3A2620;
+  --color-success: #34C57F;
+  --color-success-tint: #17301F;
+  --color-danger: #F16868;
+  --color-danger-tint: #351A1A;
+  --color-gold: #E8B84B;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================================================
+   Reset & Base
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.55;
+  transition: background var(--transition-mid), color var(--transition-mid);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0 0 .4em; font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+p { margin: 0 0 .8em; color: var(--color-text-muted); }
+button { font-family: inherit; cursor: pointer; }
+input { font-family: inherit; }
+
+a { color: var(--color-primary); }
+
+:focus-visible {
+  outline: 2.5px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.hidden { display: none !important; }
+
+/* ==========================================================================
+   Top bar (mobile)
+   ========================================================================== */
+
+.topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topbar-brand, .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.brand-mark {
+  color: var(--color-primary);
+  font-size: 1.1em;
+}
+
+.hamburger {
+  width: 38px; height: 38px;
+  border: none;
+  background: transparent;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px;
+  border-radius: var(--radius-sm);
+}
+.hamburger:hover { background: var(--color-bg-alt); }
+.hamburger span {
+  width: 20px; height: 2px;
+  background: var(--color-text);
+  border-radius: 2px;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.icon-btn {
+  width: 38px; height: 38px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  font-size: 1.05rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+.icon-btn:hover { background: var(--color-bg-alt); transform: scale(1.05); }
+
+/* ==========================================================================
+   App shell / Sidebar
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-brand { padding: 0 8px; font-size: 1.2rem; }
+
+.main-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  font-size: .93rem;
+  font-weight: 600;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.nav-icon { font-size: 1.05rem; width: 20px; text-align: center; }
+
+.nav-item:hover { background: var(--color-bg-alt); color: var(--color-text); }
+
+.nav-item.active {
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mini-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+}
+.mini-stat-flame { font-size: 1.2rem; }
+.mini-stat strong { display: block; font-size: 1rem; line-height: 1.1; }
+.mini-stat small { color: var(--color-text-faint); font-size: .72rem; }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 20, .45);
+  z-index: 45;
+}
+
+/* ==========================================================================
+   Main content
+   ========================================================================== */
+
+.main-content {
+  flex: 1;
+  padding: 32px 40px 80px;
+  max-width: 1180px;
+  min-width: 0;
+}
+
+.page { display: none; animation: fadeSlideIn .35s ease; }
+.page.active { display: block; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.page-subtitle { margin: 0; color: var(--color-text-muted); }
+
+.section-title { margin: 34px 0 14px; }
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: .88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.btn:active { transform: scale(.97); }
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(76, 70, 224, .3);
+}
+.btn-primary:hover { background: var(--color-primary-dark); }
+
+.btn-secondary {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn-secondary:hover { background: var(--color-border); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 8px 14px;
+}
+.btn-ghost:hover { color: var(--color-primary); }
+
+.btn-success {
+  background: var(--color-success-tint);
+  color: var(--color-success);
+}
+.btn-success:hover { filter: brightness(.95); }
+
+.btn-danger {
+  background: var(--color-danger-tint);
+  color: var(--color-danger);
+}
+.btn-danger:hover { filter: brightness(.95); }
+
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.back-btn { margin-bottom: 16px; padding-left: 4px; }
+
+/* ==========================================================================
+   Stat cards
+   ========================================================================== */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card .stat-icon { font-size: 1.3rem; }
+.stat-card .stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 6px 0 2px;
+}
+.stat-card .stat-label { font-size: .8rem; color: var(--color-text-faint); }
+
+/* ==========================================================================
+   Dashboard grid / panels
+   ========================================================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-title { margin-bottom: 14px; }
+
+.continue-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, var(--color-primary-tint), var(--color-bg-alt));
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.continue-info strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+.continue-info span { font-size: .82rem; color: var(--color-text-muted); }
+
+.continue-progress-wrap {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.mini-progress-track {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.mini-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  transition: width .5s ease;
+}
+
+.level-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.level-badge {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.level-info { flex: 1; min-width: 0; }
+.level-info strong { display: block; margin-bottom: 6px; }
+
+.xp-bar-track {
+  height: 10px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-radius: var(--radius-pill);
+  transition: width .6s ease;
+}
+.level-info small { color: var(--color-text-faint); font-size: .76rem; }
+
+/* ==========================================================================
+   Subject cards
+   ========================================================================== */
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.subject-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: left;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.subject-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.subject-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+
+.subject-card h3 { margin-bottom: 2px; }
+.subject-card p { font-size: .82rem; margin-bottom: 4px; }
+
+.subject-progress-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: auto;
+}
+.subject-progress-row .mini-progress-track { flex: 1; margin-top: 0; }
+.subject-progress-row span { font-size: .76rem; color: var(--color-text-faint); font-weight: 700; }
+
+/* ==========================================================================
+   Topics / Lesson
+   ========================================================================== */
+
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.topic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.topic-row:hover { border-color: var(--color-primary); transform: translateX(2px); }
+
+.topic-row-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.topic-index {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-weight: 800; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.topic-row-title { font-weight: 700; }
+.topic-row-status { font-size: .78rem; color: var(--color-text-faint); }
+
+.badge-done {
+  background: var(--color-success-tint);
+  color: var(--color-success);
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.lesson-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  max-width: 760px;
+}
+
+.lesson-progress-track {
+  height: 6px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.lesson-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width .4s ease;
+}
+
+.lesson-kicker {
+  font-size: .78rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.lesson-block { margin: 22px 0; }
+.lesson-block h3 { color: var(--color-text-muted); font-size: .82rem; text-transform: none; margin-bottom: 8px; }
+.lesson-block ul { margin: 0; padding-left: 20px; color: var(--color-text-muted); }
+.lesson-block li { margin-bottom: 6px; }
+
+.merksatz-block {
+  background: var(--color-accent-tint);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+.merksatz-block p { color: var(--color-text); font-weight: 600; margin: 0; }
+
+.term-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.term-chip {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.lesson-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Flashcards
+   ========================================================================== */
+
+.flashcard-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  font-size: .85rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.flashcard-progress-track {
+  flex: 1;
+  height: 8px;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.flashcard-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width .4s ease;
+}
+
+.flashcard-stage {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 26px;
+  perspective: 1400px;
+}
+
+.flashcard {
+  width: 100%;
+  max-width: 480px;
+  height: 260px;
+  cursor: pointer;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+  transform-style: preserve-3d;
+}
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  box-shadow: var(--shadow-md);
+}
+
+.flashcard-front {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+.flashcard-back {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  transform: rotateY(180deg);
+}
+
+.flashcard-hint {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .6;
+  margin-bottom: 12px;
+}
+.flashcard-front p, .flashcard-back p {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: inherit;
+}
+.flip-hint {
+  position: absolute;
+  bottom: 16px;
+  font-size: .74rem;
+  opacity: .5;
+}
+
+.flashcard-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+#nextCardBtn { display: flex; margin: 0 auto; }
+
+/* ==========================================================================
+   Quiz
+   ========================================================================== */
+
+.quiz-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.quiz-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-top: 18px;
+  max-width: 640px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.quiz-option {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-2);
+  font-weight: 600;
+  font-size: .92rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--color-primary); transform: translateX(2px); }
+.quiz-option .opt-letter {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  background: var(--color-bg-alt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 800;
+  flex-shrink: 0;
+}
+.quiz-option.correct { border-color: var(--color-success); background: var(--color-success-tint); }
+.quiz-option.correct .opt-letter { background: var(--color-success); color: #fff; }
+.quiz-option.wrong { border-color: var(--color-danger); background: var(--color-danger-tint); }
+.quiz-option.wrong .opt-letter { background: var(--color-danger); color: #fff; }
+.quiz-option:disabled { cursor: default; }
+
+.quiz-feedback {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+.quiz-feedback p { color: var(--color-text); }
+
+.quiz-result-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  text-align: center;
+  max-width: 460px;
+  margin: 20px auto 0;
+}
+
+.result-ring {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: conic-gradient(var(--color-primary) calc(var(--pct, 0) * 1%), var(--color-bg-alt) 0);
+  display: flex; align-items: center; justify-content: center;
+  margin: 20px auto;
+}
+.result-ring::before {
+  content: "";
+  position: absolute;
+}
+.result-ring span {
+  background: var(--color-surface);
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 800;
+}
+
+.result-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 16px 0 24px;
+}
+.result-stats strong { display: block; font-size: 1.3rem; }
+.result-stats small { color: var(--color-text-faint); font-size: .76rem; }
+
+.quiz-result-card .lesson-nav { border-top: none; justify-content: center; padding-top: 0; }
+
+/* ==========================================================================
+   Tasks
+   ========================================================================== */
+
+.task-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.chip-filter {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: .82rem;
+  font-weight: 700;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.chip-filter.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.task-check {
+  width: 24px; height: 24px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem;
+  color: #fff;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.task-check.done { background: var(--color-success); border-color: var(--color-success); }
+.task-check.progress { border-color: var(--color-accent); }
+
+.task-body { flex: 1; min-width: 0; }
+.task-title { font-weight: 700; margin-bottom: 3px; }
+.task-title.done { text-decoration: line-through; color: var(--color-text-faint); }
+.task-desc { font-size: .84rem; margin-bottom: 8px; }
+.task-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.tag {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+}
+.tag-easy { background: var(--color-success-tint); color: var(--color-success); }
+.tag-medium { background: #FFF4DC; color: var(--color-gold); }
+[data-theme="dark"] .tag-medium { background: #3A310F; }
+.tag-hard { background: var(--color-danger-tint); color: var(--color-danger); }
+.tag-status-open { background: var(--color-bg-alt); }
+.tag-status-progress { background: var(--color-accent-tint); color: var(--color-accent); }
+.tag-status-done { background: var(--color-success-tint); color: var(--color-success); }
+
+.task-status-select {
+  margin-left: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ==========================================================================
+   Progress page
+   ========================================================================== */
+
+.subject-progress-list { display: flex; flex-direction: column; gap: 12px; }
+
+.subject-progress-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+}
+.subject-progress-item .row-top {
+  display: flex; justify-content: space-between; margin-bottom: 8px;
+  font-weight: 700; font-size: .9rem;
+}
+.subject-progress-item .row-top span:last-child { color: var(--color-text-faint); font-weight: 700; }
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 160px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 6px;
+}
+.bar-fill {
+  width: 60%;
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--color-accent), var(--color-primary));
+  transition: height .5s ease;
+}
+.bar-col span { font-size: .72rem; color: var(--color-text-faint); font-weight: 700; }
+
+/* ==========================================================================
+   Settings
+   ========================================================================== */
+
+.settings-panel { display: flex; flex-direction: column; gap: 22px; max-width: 620px; }
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row strong { display: block; margin-bottom: 3px; }
+.settings-row p { margin: 0; font-size: .84rem; }
+
+.switch {
+  width: 48px; height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  border: none;
+  position: relative;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.switch[aria-checked="true"] { background: var(--color-primary); }
+.switch-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+.switch[aria-checked="true"] .switch-knob { transform: translateX(20px); }
+
+.text-input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: .88rem;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  width: 180px;
+}
+
+/* ==========================================================================
+   Empty state / toast
+   ========================================================================== */
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-faint);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: .85rem;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-mid), transform var(--transition-mid);
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .topbar { display: flex; }
+  .desktop-theme-toggle { display: none; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform var(--transition-mid);
+    z-index: 50;
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-brand { display: none; }
+  .sidebar-overlay.show { display: block; }
+
+  .main-content { padding: 20px 16px 70px; }
+  .page-header { flex-direction: column; }
+
+  .flashcard { height: 220px; }
+}
+
+@media (min-width: 901px) {
+  .icon-btn#topThemeToggle { display: none; }
+}
+
+@media (max-width: 600px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .subject-grid { grid-template-columns: 1fr; }
+  .lesson-card { padding: 20px; }
+  .quiz-card { padding: 20px; }
+  .result-stats { gap: 14px; }
+  .flashcard-actions { flex-direction: column; width: 100%; }
+  .flashcard-actions .btn { width: 100%; justify-content: center; }
+  .task-status-select { margin-left: 0; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR (mobile) ============ -->
+<header class="topbar">
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menü öffnen" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topbar-brand">
+    <span class="brand-mark" aria-hidden="true">◆</span>
+    <span class="brand-name">Lernpfad</span>
+  </div>
+  <button class="icon-btn" id="topThemeToggle" aria-label="Dark Mode umschalten" title="Dark Mode umschalten">
+    <span id="topThemeIcon">🌙</span>
+  </button>
+</header>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR NAVIGATION ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark" aria-hidden="true">◆</span>
+      <span class="brand-name">Lernpfad</span>
+    </div>
+
+    <nav class="main-nav" aria-label="Hauptnavigation">
+      <button class="nav-item" data-page="dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">⌂</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-page="lernen">
+        <span class="nav-icon" aria-hidden="true">◈</span><span>Lernen</span>
+      </button>
+      <button class="nav-item" data-page="lernkarten">
+        <span class="nav-icon" aria-hidden="true">▤</span><span>Lernkarten</span>
+      </button>
+      <button class="nav-item" data-page="quiz">
+        <span class="nav-icon" aria-hidden="true">✓</span><span>Quiz</span>
+      </button>
+      <button class="nav-item" data-page="aufgaben">
+        <span class="nav-icon" aria-hidden="true">☑</span><span>Aufgaben</span>
+      </button>
+      <button class="nav-item" data-page="fortschritt">
+        <span class="nav-icon" aria-hidden="true">◐</span><span>Fortschritt</span>
+      </button>
+      <button class="nav-item" data-page="einstellungen">
+        <span class="nav-icon" aria-hidden="true">⚙</span><span>Einstellungen</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="mini-stat">
+        <span class="mini-stat-flame">🔥</span>
+        <div>
+          <strong id="sidebarStreak">0</strong>
+          <small>Tage Serie</small>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <span class="mini-stat-flame">⚡</span>
+        <div>
+          <strong id="sidebarXP">0</strong>
+          <small>XP gesamt</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="page active" id="page-dashboard" data-title="Dashboard">
+      <div class="page-header">
+        <div>
+          <h1 id="greeting">Willkommen zurück! 👋</h1>
+          <p class="page-subtitle">Bereit für deine nächste Lerneinheit?</p>
+        </div>
+        <button class="btn btn-ghost desktop-theme-toggle" id="desktopThemeToggle">
+          <span id="desktopThemeIcon">🌙</span> <span id="desktopThemeLabel">Dark Mode</span>
+        </button>
+      </div>
+
+      <div class="stat-grid" id="dashboardStats">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="panel continue-panel" id="continuePanel">
+          <h2 class="panel-title">Weiterlernen</h2>
+          <div id="continueCard" class="continue-card">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">Level &amp; XP</h2>
+          <div class="level-block">
+            <div class="level-badge" id="levelBadge">1</div>
+            <div class="level-info">
+              <strong id="levelName">Anfänger</strong>
+              <div class="xp-bar-track">
+                <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+              </div>
+              <small id="levelXpText">0 / 100 XP bis zum nächsten Level</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Deine Lernfächer</h2>
+      <div class="subject-grid" id="subjectGrid">
+        <!-- filled by JS -->
+      </div>
+    </section>
+
+    <!-- ===================== LERNEN ===================== -->
+    <section class="page" id="page-lernen" data-title="Lernen">
+      <div class="page-header">
+        <div>
+          <h1>Lernen</h1>
+          <p class="page-subtitle">Wähle ein Fach und tauche in ein Thema ein.</p>
+        </div>
+      </div>
+
+      <div id="lernenSubjectView">
+        <div class="subject-grid" id="lernenSubjectGrid"></div>
+      </div>
+
+      <div id="lernenTopicView" class="hidden">
+        <button class="btn btn-ghost back-btn" id="backToSubjects">← Zurück zu den Fächern</button>
+        <h2 class="section-title" id="topicViewSubjectName">Fach</h2>
+        <div class="topic-list" id="topicList"></div>
+      </div>
+
+      <div id="lernenLessonView" class="hidden">
+        <button class="btn btn-ghost back-btn" id="backToTopics">← Zurück zur Themenübersicht</button>
+        <article class="lesson-card">
+          <div class="lesson-progress-track">
+            <div class="lesson-progress-fill" id="lessonProgressFill" style="width:0%"></div>
+          </div>
+          <p class="lesson-kicker" id="lessonKicker">Thema 1 von 6</p>
+          <h1 id="lessonTitle">Titel</h1>
+
+          <div class="lesson-block">
+            <h3>Lernziel</h3>
+            <p id="lessonGoal"></p>
+          </div>
+
+          <div class="lesson-block">
+            <h3>Erklärung</h3>
+            <div id="lessonExplanation"></div>
+          </div>
+
+          <div class="lesson-block">
+            <h3>Beispiele</h3>
+            <div id="lessonExamples"></div>
+          </div>
+
+          <div class="lesson-block">
+            <h3>Wichtige Begriffe</h3>
+            <div class="term-chips" id="lessonTerms"></div>
+          </div>
+
+          <div class="lesson-block merksatz-block">
+            <h3>Merksatz</h3>
+            <p id="lessonMerksatz"></p>
+          </div>
+
+          <div class="lesson-nav">
+            <button class="btn btn-secondary" id="prevLessonBtn">← Vorheriges Kapitel</button>
+            <button class="btn btn-primary" id="completeLessonBtn">Kapitel abschließen ✓</button>
+            <button class="btn btn-secondary" id="nextLessonBtn">Nächstes Kapitel →</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== LERNKARTEN ===================== -->
+    <section class="page" id="page-lernkarten" data-title="Lernkarten">
+      <div class="page-header">
+        <div>
+          <h1>Lernkarten</h1>
+          <p class="page-subtitle">Drehe die Karte um und prüfe dein Wissen.</p>
+        </div>
+      </div>
+
+      <div id="flashcardSubjectView">
+        <div class="subject-grid" id="flashcardSubjectGrid"></div>
+      </div>
+
+      <div id="flashcardStudyView" class="hidden">
+        <button class="btn btn-ghost back-btn" id="backFromFlashcards">← Zurück zu den Fächern</button>
+
+        <div class="flashcard-meta">
+          <span id="flashcardCounter">Karte 1 / 10</span>
+          <div class="flashcard-progress-track">
+            <div class="flashcard-progress-fill" id="flashcardProgressFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="flashcard-stage">
+          <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Karte umdrehen">
+            <div class="flashcard-inner" id="flashcardInner">
+              <div class="flashcard-face flashcard-front">
+                <span class="flashcard-hint">Frage</span>
+                <p id="flashcardFront">Frage</p>
+                <span class="flip-hint">Klicken zum Umdrehen ↺</span>
+              </div>
+              <div class="flashcard-face flashcard-back">
+                <span class="flashcard-hint">Antwort</span>
+                <p id="flashcardBack">Antwort</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard-actions">
+          <button class="btn btn-danger" id="knewNotBtn">↻ Noch einmal</button>
+          <button class="btn btn-success" id="knewItBtn">✓ Ich wusste es</button>
+        </div>
+        <button class="btn btn-ghost" id="nextCardBtn">Nächste Karte →</button>
+
+        <div class="empty-state hidden" id="flashcardEmptyState">
+          <p>🎉 Alle Karten in diesem Fach geschafft! Starte jederzeit erneut.</p>
+          <button class="btn btn-primary" id="restartFlashcardsBtn">Von vorne beginnen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== QUIZ ===================== -->
+    <section class="page" id="page-quiz" data-title="Quiz">
+      <div class="page-header">
+        <div>
+          <h1>Quiz</h1>
+          <p class="page-subtitle">Teste dein Wissen und sammle XP.</p>
+        </div>
+      </div>
+
+      <div id="quizSubjectView">
+        <div class="subject-grid" id="quizSubjectGrid"></div>
+      </div>
+
+      <div id="quizPlayView" class="hidden">
+        <button class="btn btn-ghost back-btn" id="backFromQuiz">← Zurück zu den Fächern</button>
+
+        <div class="quiz-meta">
+          <span id="quizProgressText">Frage 1 / 5</span>
+          <span id="quizScoreText">Punkte: 0</span>
+        </div>
+        <div class="flashcard-progress-track">
+          <div class="flashcard-progress-fill" id="quizProgressFill" style="width:0%"></div>
+        </div>
+
+        <div class="quiz-card">
+          <h2 id="quizQuestion">Frage</h2>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback hidden" id="quizFeedback">
+            <p id="quizFeedbackText"></p>
+            <button class="btn btn-primary" id="quizNextBtn">Weiter →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quizResultView" class="hidden">
+        <div class="quiz-result-card">
+          <h1>Quiz abgeschlossen! 🎉</h1>
+          <div class="result-ring" id="resultRing">
+            <span id="resultPercent">0%</span>
+          </div>
+          <div class="result-stats">
+            <div><strong id="resultScore">0</strong><small>Punkte</small></div>
+            <div><strong id="resultCorrect">0</strong><small>Richtig</small></div>
+            <div><strong id="resultWrong">0</strong><small>Falsch</small></div>
+          </div>
+          <div class="lesson-nav">
+            <button class="btn btn-secondary" id="quizBackToSubjectsBtn">Andere Fächer</button>
+            <button class="btn btn-primary" id="retryQuizBtn">Nochmal versuchen</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== AUFGABEN ===================== -->
+    <section class="page" id="page-aufgaben" data-title="Aufgaben">
+      <div class="page-header">
+        <div>
+          <h1>Aufgaben</h1>
+          <p class="page-subtitle">Behalte deine Übungen im Blick.</p>
+        </div>
+      </div>
+
+      <div class="task-filters" id="taskFilters">
+        <button class="chip-filter active" data-filter="alle">Alle</button>
+        <button class="chip-filter" data-filter="Offen">Offen</button>
+        <button class="chip-filter" data-filter="In Bearbeitung">In Bearbeitung</button>
+        <button class="chip-filter" data-filter="Erledigt">Erledigt</button>
+      </div>
+
+      <div class="task-list" id="taskList"></div>
+      <p class="empty-state hidden" id="taskEmptyState">Noch keine Lernaktivitäten vorhanden.</p>
+    </section>
+
+    <!-- ===================== FORTSCHRITT ===================== -->
+    <section class="page" id="page-fortschritt" data-title="Fortschritt">
+      <div class="page-header">
+        <div>
+          <h1>Fortschritt</h1>
+          <p class="page-subtitle">So weit bist du gekommen.</p>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="progressStats"></div>
+
+      <h2 class="section-title">Fortschritt pro Fach</h2>
+      <div class="subject-progress-list" id="subjectProgressList"></div>
+
+      <h2 class="section-title">Aktivität der letzten 7 Tage</h2>
+      <div class="bar-chart" id="activityChart"></div>
+    </section>
+
+    <!-- ===================== EINSTELLUNGEN ===================== -->
+    <section class="page" id="page-einstellungen" data-title="Einstellungen">
+      <div class="page-header">
+        <div>
+          <h1>Einstellungen</h1>
+          <p class="page-subtitle">Passe Lernpfad an deine Bedürfnisse an.</p>
+        </div>
+      </div>
+
+      <div class="panel settings-panel">
+        <div class="settings-row">
+          <div>
+            <strong>Dark Mode</strong>
+            <p>Wechsle zwischen hellem und dunklem Design.</p>
+          </div>
+          <button class="switch" id="settingsThemeSwitch" role="switch" aria-checked="false" aria-label="Dark Mode umschalten">
+            <span class="switch-knob"></span>
+          </button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>Dein Name</strong>
+            <p>Wird auf dem Dashboard angezeigt.</p>
+          </div>
+          <input type="text" id="userNameInput" class="text-input" maxlength="24" placeholder="Lernende:r">
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong>Daten zurücksetzen</strong>
+            <p>Löscht deinen gesamten Lernfortschritt unwiderruflich.</p>
+          </div>
+          <button class="btn btn-danger" id="resetDataBtn">Zurücksetzen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
 /* ==========================================================================
    LERNPFAD — script.js
    Vanilla JS Lernplattform. Kein Framework, keine Installation nötig.
@@ -1394,3 +2841,7 @@ function initApp() {
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
+
+</script>
+</body>
+</html>
