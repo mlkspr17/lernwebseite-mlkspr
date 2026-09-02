@@ -1,0 +1,1396 @@
+/* ==========================================================================
+   LERNPFAD — script.js
+   Vanilla JS Lernplattform. Kein Framework, keine Installation nötig.
+   Alle Daten werden lokal im Browser (localStorage) gespeichert.
+   ========================================================================== */
+
+'use strict';
+
+/* ==========================================================================
+   1. INHALTSDATEN
+   ========================================================================== */
+
+const SUBJECTS = [
+  { id: 'informatik', name: 'Informatik', icon: '💻' },
+  { id: 'mathematik', name: 'Mathematik', icon: '➗' },
+  { id: 'deutsch',    name: 'Deutsch',    icon: '📖' },
+  { id: 'englisch',   name: 'Englisch',   icon: '🇬🇧' },
+  { id: 'medien',     name: 'Medien',     icon: '🎬' },
+  { id: 'geschichte', name: 'Geschichte', icon: '🏛️' }
+];
+
+const LESSONS = {
+  informatik: [
+    {
+      id: 'was-ist-informatik',
+      title: 'Was ist Informatik?',
+      goal: 'Du verstehst, womit sich die Informatik beschäftigt und wo sie überall vorkommt.',
+      explanation: [
+        'Informatik ist die Wissenschaft von der systematischen Verarbeitung von Informationen, insbesondere mit Computern. Sie untersucht, wie Daten dargestellt, gespeichert, übertragen und verarbeitet werden können.',
+        'Man unterscheidet häufig zwischen theoretischer Informatik (z. B. Logik, Algorithmen), technischer Informatik (Hardware, Schaltungen) und praktischer Informatik (Programmierung, Software).',
+        'Informatik steckt heute in fast jedem Alltagsgegenstand: Smartphones, Autos, Waschmaschinen, Ampeln und natürlich in jeder Webseite, die du besuchst.'
+      ],
+      examples: [
+        'Ein Navigationssystem berechnet mit einem Algorithmus die kürzeste Route.',
+        'Eine Streaming-App speichert und überträgt Video-Daten in komprimierter Form.',
+        'Eine Waschmaschine mit Mikrocontroller steuert Wasserzufuhr und Temperatur automatisch.'
+      ],
+      terms: ['Information', 'Algorithmus', 'Hardware', 'Software', 'Daten'],
+      merksatz: 'Informatik ist überall dort, wo Informationen systematisch verarbeitet werden – nicht nur am Computer.'
+    },
+    {
+      id: 'algorithmen',
+      title: 'Algorithmen',
+      goal: 'Du kannst erklären, was ein Algorithmus ist, und ein einfaches Beispiel nennen.',
+      explanation: [
+        'Ein Algorithmus ist eine eindeutige, endliche Abfolge von Schritten, die ein bestimmtes Problem löst. Er lässt sich mit einem Kochrezept vergleichen: klare Schritte, in der richtigen Reihenfolge, mit einem definierten Ziel.',
+        'Wichtige Eigenschaften eines guten Algorithmus sind Eindeutigkeit (jeder Schritt ist klar definiert), Endlichkeit (er hört irgendwann auf) und Allgemeingültigkeit (er funktioniert für verschiedene Eingaben).',
+        'Algorithmen können als Text, Flussdiagramm oder direkt als Programmcode formuliert werden.'
+      ],
+      examples: [
+        'Sortieralgorithmus: Zahlen in einer Liste der Größe nach ordnen.',
+        'Suchalgorithmus: Den kleinsten Weg zwischen zwei Punkten finden.',
+        'Alltagsbeispiel: Die Schritte einer Anleitung zum Zähneputzen sind ebenfalls ein Algorithmus.'
+      ],
+      terms: ['Algorithmus', 'Flussdiagramm', 'Eingabe', 'Ausgabe', 'Schleife'],
+      merksatz: 'Ein Algorithmus ist wie ein Rezept: klare Schritte führen zuverlässig zum Ergebnis.'
+    },
+    {
+      id: 'html-grundlagen',
+      title: 'HTML',
+      goal: 'Du kennst die Grundstruktur einer HTML-Seite und wichtige Tags.',
+      explanation: [
+        'HTML (HyperText Markup Language) ist die Auszeichnungssprache, mit der die Struktur von Webseiten beschrieben wird. Sie besteht aus sogenannten Tags, die Inhalte kennzeichnen – etwa Überschriften, Absätze oder Bilder.',
+        'Jede HTML-Seite besitzt ein Grundgerüst: den &lt;head&gt;-Bereich mit Metainformationen und den &lt;body&gt;-Bereich mit dem sichtbaren Inhalt.',
+        'HTML beschreibt nur die Struktur, nicht das Aussehen – für die Gestaltung ist CSS zuständig.'
+      ],
+      examples: [
+        '&lt;h1&gt;Überschrift&lt;/h1&gt; erzeugt eine große Hauptüberschrift.',
+        '&lt;p&gt;Text&lt;/p&gt; erzeugt einen Absatz.',
+        '&lt;a href="seite.html"&gt;Link&lt;/a&gt; erzeugt einen klickbaren Link.'
+      ],
+      terms: ['Tag', 'Element', 'Attribut', 'DOM', 'Head/Body'],
+      merksatz: 'HTML beschreibt die Struktur einer Webseite – wie das Skelett eines Gebäudes.'
+    },
+    {
+      id: 'css-grundlagen',
+      title: 'CSS',
+      goal: 'Du verstehst, wie CSS Elemente auswählt und gestaltet.',
+      explanation: [
+        'CSS (Cascading Style Sheets) ist die Sprache, mit der HTML-Elemente gestaltet werden: Farben, Abstände, Schriftarten, Layout und Animationen.',
+        'Eine CSS-Regel besteht aus einem Selektor (welches Element wird gestaltet) und einem Deklarationsblock (welche Eigenschaften werden gesetzt).',
+        'CSS kann direkt im HTML, in einem &lt;style&gt;-Block oder – wie in diesem Projekt – in einer eigenen .css-Datei stehen, die verlinkt wird.'
+      ],
+      examples: [
+        'p { color: blue; } färbt alle Absätze blau.',
+        '.karte { border-radius: 12px; } rundet die Ecken aller Elemente mit der Klasse "karte" ab.',
+        '@media (max-width: 600px) { ... } passt das Layout an kleine Bildschirme an.'
+      ],
+      terms: ['Selektor', 'Klasse', 'ID', 'Box-Modell', 'Responsive Design'],
+      merksatz: 'CSS ist die Kleidung von HTML: gleiche Struktur, komplett anderes Aussehen möglich.'
+    },
+    {
+      id: 'javascript-grundlagen',
+      title: 'JavaScript',
+      goal: 'Du weißt, wofür JavaScript eingesetzt wird und kennst grundlegende Bausteine.',
+      explanation: [
+        'JavaScript ist eine Programmiersprache, die Webseiten interaktiv macht: Buttons reagieren auf Klicks, Inhalte werden ohne Neuladen aktualisiert, Daten können im Browser gespeichert werden.',
+        'Grundlegende Bausteine sind Variablen (Speicherorte für Werte), Funktionen (wiederverwendbare Codeblöcke), Bedingungen (if/else) und Schleifen (for/while).',
+        'JavaScript kann auf die Struktur der Seite (das DOM) zugreifen, um Inhalte zu lesen, zu verändern oder neu zu erzeugen – genau das macht auch diese Lernplattform.'
+      ],
+      examples: [
+        'let punkte = 0; erstellt eine Variable mit dem Startwert 0.',
+        'function begruessung() { return "Hallo!"; } definiert eine Funktion.',
+        'document.getElementById("titel") greift auf ein Element mit der ID "titel" zu.'
+      ],
+      terms: ['Variable', 'Funktion', 'DOM', 'Event', 'localStorage'],
+      merksatz: 'HTML gibt die Struktur, CSS das Aussehen, JavaScript das Verhalten einer Webseite.'
+    },
+    {
+      id: 'kuenstliche-intelligenz',
+      title: 'Künstliche Intelligenz',
+      goal: 'Du kannst grundlegende Begriffe der KI einordnen und Beispiele nennen.',
+      explanation: [
+        'Künstliche Intelligenz (KI) bezeichnet Systeme, die Aufgaben lösen, für die normalerweise menschliche Intelligenz nötig wäre – etwa Mustererkennung, Sprache verstehen oder Entscheidungen treffen.',
+        'Maschinelles Lernen ist ein Teilbereich der KI, bei dem Systeme aus Daten "lernen", statt fest programmierte Regeln zu befolgen. Neuronale Netze sind dabei ein häufig verwendetes Modell.',
+        'KI wirft auch wichtige Fragen auf: Woher kommen die Trainingsdaten? Wie zuverlässig sind die Ergebnisse? Welche Verantwortung tragen Menschen bei automatisierten Entscheidungen?'
+      ],
+      examples: [
+        'Bilderkennung: Ein System erkennt, ob auf einem Foto eine Katze zu sehen ist.',
+        'Sprachassistenten wandeln gesprochene Sprache in Text um und reagieren darauf.',
+        'Empfehlungssysteme schlagen basierend auf bisherigem Verhalten neue Inhalte vor.'
+      ],
+      terms: ['Künstliche Intelligenz', 'Maschinelles Lernen', 'Neuronales Netz', 'Trainingsdaten', 'Algorithmus'],
+      merksatz: 'KI erkennt Muster in Daten – sie „versteht" dabei nicht wie ein Mensch, sondern rechnet auf Basis von Wahrscheinlichkeiten.'
+    }
+  ],
+
+  mathematik: [
+    {
+      id: 'bruchrechnung',
+      title: 'Bruchrechnung',
+      goal: 'Du kannst Brüche addieren, subtrahieren und kürzen.',
+      explanation: [
+        'Ein Bruch besteht aus Zähler (oben) und Nenner (unten) und beschreibt einen Teil eines Ganzen.',
+        'Um Brüche zu addieren oder subtrahieren, müssen sie zuerst auf einen gemeinsamen Nenner gebracht werden.',
+        'Kürzen bedeutet, Zähler und Nenner durch dieselbe Zahl zu teilen, ohne den Wert des Bruchs zu verändern.'
+      ],
+      examples: [
+        '1/4 + 1/2 = 1/4 + 2/4 = 3/4',
+        '6/8 gekürzt durch 2 ergibt 3/4',
+        '3/5 − 1/5 = 2/5'
+      ],
+      terms: ['Zähler', 'Nenner', 'Kürzen', 'Erweitern', 'gemeinsamer Nenner'],
+      merksatz: 'Erst gemeinsamer Nenner, dann rechnen – Kürzen macht Brüche einfacher, nicht kleiner an Wert.'
+    },
+    {
+      id: 'gleichungen',
+      title: 'Gleichungen',
+      goal: 'Du kannst einfache lineare Gleichungen nach x auflösen.',
+      explanation: [
+        'Eine Gleichung besagt, dass zwei Terme gleich groß sind. Ziel ist es meist, die Unbekannte (z. B. x) zu isolieren.',
+        'Dabei gilt: Jede Rechenoperation, die auf einer Seite durchgeführt wird, muss auch auf der anderen Seite durchgeführt werden, damit die Gleichung erhalten bleibt.',
+        'Typische Schritte: Zahlen zusammenfassen, x-Terme auf eine Seite bringen, durch den Faktor vor x teilen.'
+      ],
+      examples: [
+        '2x + 4 = 10 → 2x = 6 → x = 3',
+        '5x − 3 = 2x + 9 → 3x = 12 → x = 4',
+        'x/3 = 7 → x = 21'
+      ],
+      terms: ['Unbekannte', 'Term', 'Äquivalenzumformung', 'Lösungsmenge'],
+      merksatz: 'Was du auf einer Seite der Gleichung tust, musst du auch auf der anderen Seite tun.'
+    },
+    {
+      id: 'geometrie',
+      title: 'Geometrie',
+      goal: 'Du kennst Flächen- und Umfangsformeln für einfache Figuren.',
+      explanation: [
+        'Der Umfang einer Figur ist die Länge ihres Randes, die Fläche ist der Inhalt der eingeschlossenen Region.',
+        'Beim Rechteck gilt: Umfang = 2 · (Länge + Breite), Fläche = Länge · Breite.',
+        'Beim Kreis gilt: Umfang = 2 · π · r, Fläche = π · r².'
+      ],
+      examples: [
+        'Rechteck 5 cm × 3 cm: Fläche = 15 cm², Umfang = 16 cm',
+        'Kreis mit Radius 4 cm: Fläche ≈ 50,3 cm²',
+        'Quadrat mit Seite 6 cm: Fläche = 36 cm²'
+      ],
+      terms: ['Umfang', 'Fläche', 'Radius', 'Durchmesser', 'Pi (π)'],
+      merksatz: 'Umfang misst den Rand, Fläche misst den Inhalt – beide brauchen unterschiedliche Formeln.'
+    }
+  ],
+
+  deutsch: [
+    {
+      id: 'wortarten',
+      title: 'Wortarten',
+      goal: 'Du kannst die wichtigsten Wortarten unterscheiden.',
+      explanation: [
+        'Wortarten ordnen Wörter nach ihrer Funktion im Satz. Die wichtigsten sind Nomen, Verben, Adjektive, Pronomen und Präpositionen.',
+        'Nomen (Substantive) bezeichnen Dinge, Lebewesen oder Begriffe und werden großgeschrieben.',
+        'Verben beschreiben Tätigkeiten oder Zustände und werden konjugiert (z. B. ich gehe, du gehst).'
+      ],
+      examples: [
+        'Nomen: Hund, Freundschaft, Auto',
+        'Verb: laufen, denken, sein',
+        'Adjektiv: schnell, groß, freundlich'
+      ],
+      terms: ['Nomen', 'Verb', 'Adjektiv', 'Pronomen', 'Präposition'],
+      merksatz: 'Wortarten zeigen, welche Aufgabe ein Wort im Satz übernimmt.'
+    },
+    {
+      id: 'satzglieder',
+      title: 'Satzglieder',
+      goal: 'Du kannst Subjekt, Prädikat und Objekt in einem Satz bestimmen.',
+      explanation: [
+        'Satzglieder sind die Bausteine eines Satzes. Sie können aus einem oder mehreren Wörtern bestehen und lassen sich gemeinsam verschieben.',
+        'Das Prädikat ist das Verb des Satzes, das Subjekt beantwortet die Frage "Wer oder was tut etwas?".',
+        'Objekte ergänzen das Verb – z. B. das Akkusativobjekt (Wen oder was?) oder das Dativobjekt (Wem?).'
+      ],
+      examples: [
+        'Der Hund (Subjekt) bellt (Prädikat) laut.',
+        'Sie liest ein Buch (Akkusativobjekt).',
+        'Er schenkt seiner Schwester (Dativobjekt) Blumen.'
+      ],
+      terms: ['Subjekt', 'Prädikat', 'Objekt', 'Satzglied', 'Umstellprobe'],
+      merksatz: 'Ein Satzglied lässt sich als Ganzes an den Satzanfang verschieben – das unterscheidet es vom einzelnen Wort.'
+    },
+    {
+      id: 'textanalyse',
+      title: 'Textanalyse',
+      goal: 'Du kennst die Grundschritte einer einfachen Textanalyse.',
+      explanation: [
+        'Bei einer Textanalyse untersuchst du Inhalt, Aufbau und sprachliche Mittel eines Textes.',
+        'Zu Beginn steht meist eine kurze Einleitung mit Autor, Titel, Textsorte und Thema.',
+        'Danach folgen Inhaltsangabe, Aufbau/Struktur und die Analyse sprachlicher Mittel wie Metaphern oder Wiederholungen.'
+      ],
+      examples: [
+        'Einleitungssatz: "Der Text ... von ... aus dem Jahr ... behandelt das Thema ..."',
+        'Sprachliches Mittel: eine Metapher wie "Zeit ist Geld"',
+        'Struktur: Ein Gedicht mit drei Strophen und durchgehendem Reimschema'
+      ],
+      terms: ['Textsorte', 'Metapher', 'Struktur', 'Stilmittel', 'Kernaussage'],
+      merksatz: 'Erst verstehen, was im Text steht – dann analysieren, wie es geschrieben ist.'
+    }
+  ],
+
+  englisch: [
+    {
+      id: 'present-simple',
+      title: 'Present Simple',
+      goal: 'Du kannst das Present Simple bilden und richtig einsetzen.',
+      explanation: [
+        'Das Present Simple wird für Gewohnheiten, allgemeine Wahrheiten und regelmäßige Handlungen verwendet.',
+        'Bei der 3. Person Singular (he/she/it) wird meist ein -s an das Verb angehängt.',
+        'Signalwörter sind zum Beispiel: always, usually, often, sometimes, never, every day.'
+      ],
+      examples: [
+        'I play football every weekend.',
+        'She works in a hospital.',
+        'They do not (don\'t) like coffee.'
+      ],
+      terms: ['Signalwort', 'Infinitiv', '3. Person Singular', 'Verneinung'],
+      merksatz: 'Present Simple = Routine. Bei he/she/it nicht das "-s" am Verb vergessen.'
+    },
+    {
+      id: 'present-perfect',
+      title: 'Present Perfect',
+      goal: 'Du verstehst, wann das Present Perfect verwendet wird.',
+      explanation: [
+        'Das Present Perfect beschreibt Handlungen, die in der Vergangenheit begonnen haben, aber für die Gegenwart wichtig sind, oder deren genauer Zeitpunkt unbekannt/unwichtig ist.',
+        'Bildung: have/has + Partizip Perfekt (past participle).',
+        'Typische Signalwörter: already, just, yet, ever, never, since, for.'
+      ],
+      examples: [
+        'I have already finished my homework.',
+        'She has never been to Spain.',
+        'We have lived here for five years.'
+      ],
+      terms: ['Past Participle', 'have/has', 'Signalwort', 'Zeitpunkt unbekannt'],
+      merksatz: 'Present Perfect verbindet Vergangenheit und Gegenwart – der genaue Zeitpunkt bleibt oft offen.'
+    },
+    {
+      id: 'vocabulary-building',
+      title: 'Vocabulary Building',
+      goal: 'Du kennst Strategien, um deinen englischen Wortschatz effektiv zu erweitern.',
+      explanation: [
+        'Wortschatz lernt man am besten in Zusammenhängen (Kollokationen) statt einzelner, isolierter Wörter.',
+        'Wiederholung in Abständen (Spaced Repetition) – wie bei den Lernkarten dieser Plattform – hilft, Vokabeln langfristig im Gedächtnis zu behalten.',
+        'Wortfamilien (z. B. to decide, decision, decisive) helfen, mehrere Wörter gleichzeitig zu lernen.'
+      ],
+      examples: [
+        'Kollokation: "make a decision" statt nur "decision"',
+        'Wortfamilie: happy – happiness – happily',
+        'Kontextsatz: "The weather was so bad that we cancelled the trip."'
+      ],
+      terms: ['Kollokation', 'Wortfamilie', 'Spaced Repetition', 'Kontext'],
+      merksatz: 'Wörter im Zusammenhang lernen bleibt besser hängen als reines Auswendiglernen einzelner Vokabeln.'
+    }
+  ],
+
+  medien: [
+    {
+      id: 'medienkompetenz',
+      title: 'Medienkompetenz',
+      goal: 'Du kannst erklären, was Medienkompetenz bedeutet.',
+      explanation: [
+        'Medienkompetenz beschreibt die Fähigkeit, Medien sinnvoll zu nutzen, kritisch zu bewerten und selbst verantwortungsvoll zu gestalten.',
+        'Dazu gehören Medienkunde (wie funktionieren Medien technisch), Mediennutzung, Mediengestaltung und Medienkritik.',
+        'Ein zentraler Aspekt ist zu erkennen, dass jedes Medienangebot aus einer bestimmten Perspektive erstellt wurde.'
+      ],
+      examples: [
+        'Erkennen, dass ein Werbevideo eine bestimmte Wirkung erzielen soll.',
+        'Einstellungen zur Privatsphäre in sozialen Netzwerken bewusst konfigurieren.',
+        'Ein eigenes Video mit Blick auf Bildrechte und Musiklizenzen erstellen.'
+      ],
+      terms: ['Medienkunde', 'Mediengestaltung', 'Medienkritik', 'Perspektive'],
+      merksatz: 'Medienkompetenz heißt: Medien nutzen, verstehen, hinterfragen und selbst gestalten können.'
+    },
+    {
+      id: 'quellenkritik',
+      title: 'Quellenkritik',
+      goal: 'Du kannst Online-Quellen auf ihre Glaubwürdigkeit prüfen.',
+      explanation: [
+        'Nicht jede Information im Internet ist zuverlässig. Quellenkritik hilft, Glaubwürdigkeit einzuschätzen.',
+        'Wichtige Prüffragen: Wer ist der Autor/die Autorin? Welches Interesse könnte dahinterstehen? Gibt es Belege oder Quellenangaben? Wann wurde der Inhalt veröffentlicht?',
+        'Ein Vergleich mehrerer unabhängiger Quellen erhöht die Sicherheit bei der Bewertung einer Information.'
+      ],
+      examples: [
+        'Ein Artikel ohne Autorenangabe und ohne Quellen ist mit Vorsicht zu behandeln.',
+        'Ein wissenschaftlicher Artikel mit Quellenangaben und Peer-Review gilt meist als verlässlicher.',
+        'Ein Vergleich von drei Nachrichtenseiten zeigt, ob eine Meldung übereinstimmend berichtet wird.'
+      ],
+      terms: ['Glaubwürdigkeit', 'Peer-Review', 'Primärquelle', 'Fake News'],
+      merksatz: 'Wer schreibt, warum, und woher stammen die Belege? Diese Fragen schützen vor Falschinformationen.'
+    },
+    {
+      id: 'digitale-kommunikation',
+      title: 'Digitale Kommunikation',
+      goal: 'Du kennst Regeln für einen respektvollen Umgang in digitalen Räumen.',
+      explanation: [
+        'Digitale Kommunikation unterscheidet sich vom persönlichen Gespräch: Mimik, Gestik und Tonfall fehlen, wodurch Nachrichten leichter missverstanden werden können.',
+        'Netiquette bezeichnet ungeschriebene Regeln für respektvolles Verhalten im Internet, z. B. keine beleidigenden Kommentare, Rücksicht auf andere.',
+        'Cybermobbing beschreibt wiederholtes, absichtliches Belästigen oder Bloßstellen anderer über digitale Kanäle – und ist keine Kleinigkeit.'
+      ],
+      examples: [
+        'Vor dem Absenden einer Nachricht kurz überlegen, wie sie beim Gegenüber ankommt.',
+        'Emojis können fehlende Mimik teilweise ersetzen und Missverständnisse vermeiden.',
+        'Screenshots von beleidigenden Nachrichten sichern und eine Vertrauensperson informieren.'
+      ],
+      terms: ['Netiquette', 'Cybermobbing', 'Missverständnis', 'digitale Spuren'],
+      merksatz: 'Was du online schreibst, hinterlässt Spuren – überlege daher zweimal, bevor du sendest.'
+    }
+  ],
+
+  geschichte: [
+    {
+      id: 'franzoesische-revolution',
+      title: 'Die Französische Revolution',
+      goal: 'Du kennst Ursachen und zentrale Ereignisse der Französischen Revolution.',
+      explanation: [
+        'Die Französische Revolution begann 1789 und beendete die absolutistische Herrschaft in Frankreich.',
+        'Ursachen waren unter anderem eine große soziale Ungleichheit zwischen den Ständen, eine Staatsschuldenkrise und der Einfluss aufklärerischer Ideen wie Freiheit und Gleichheit.',
+        'Zentrale Ereignisse waren der Sturm auf die Bastille (14. Juli 1789), die Erklärung der Menschen- und Bürgerrechte sowie später die Herrschaft Napoleons.'
+      ],
+      examples: [
+        'Sturm auf die Bastille als Symbol für den Beginn der Revolution.',
+        'Die "Erklärung der Menschen- und Bürgerrechte" von 1789.',
+        'Die drei Stände: Klerus, Adel und der sogenannte Dritte Stand (das übrige Volk).'
+      ],
+      terms: ['Absolutismus', 'Stände', 'Aufklärung', 'Bastille', 'Menschenrechte'],
+      merksatz: '"Freiheit, Gleichheit, Brüderlichkeit" – das Motto der Revolution wirkt bis heute nach.'
+    },
+    {
+      id: 'kalter-krieg',
+      title: 'Der Kalte Krieg',
+      goal: 'Du kannst den Grundkonflikt des Kalten Krieges beschreiben.',
+      explanation: [
+        'Der Kalte Krieg (etwa 1947–1991) war die politische, wirtschaftliche und ideologische Auseinandersetzung zwischen den USA und der Sowjetunion, ohne dass es zu einem direkten militärischen Krieg zwischen beiden Großmächten kam.',
+        'Die Welt teilte sich in einen kapitalistisch-demokratischen Westblock und einen kommunistischen Ostblock.',
+        'Symbole des Konflikts waren unter anderem der Eiserne Vorhang, der Berliner Mauerbau 1961 und das Wettrüsten inklusive Wettlauf ins All.'
+      ],
+      examples: [
+        'Die Berliner Mauer trennte von 1961 bis 1989 Ost- und West-Berlin.',
+        'Die Kubakrise 1962 brachte die Welt an den Rand eines Atomkriegs.',
+        'Der Wettlauf ins All führte 1969 zur ersten bemannten Mondlandung.'
+      ],
+      terms: ['Ostblock', 'Westblock', 'Eiserner Vorhang', 'Wettrüsten', 'Supermacht'],
+      merksatz: 'Der Kalte Krieg war ein Konflikt ohne direkte Waffengewalt zwischen den Supermächten – aber mit weltweiten Folgen.'
+    },
+    {
+      id: 'industrialisierung',
+      title: 'Industrialisierung',
+      goal: 'Du kennst die wichtigsten Veränderungen durch die Industrialisierung.',
+      explanation: [
+        'Die Industrialisierung bezeichnet den Übergang von handwerklicher zu maschineller, fabrikbasierter Produktion, beginnend in Großbritannien im späten 18. Jahrhundert.',
+        'Wichtige Erfindungen waren die Dampfmaschine, mechanische Webstühle und später die Eisenbahn, die Transport und Handel revolutionierte.',
+        'Die Industrialisierung veränderte auch die Gesellschaft grundlegend: Landflucht, Wachstum der Städte, neue soziale Klassen (Fabrikarbeiter, Unternehmer) und oft harte Arbeitsbedingungen.'
+      ],
+      examples: [
+        'Die Dampfmaschine trieb Fabriken und später auch Züge an.',
+        'Kinderarbeit in Fabriken war zu Beginn der Industrialisierung weit verbreitet.',
+        'Die Eisenbahn verkürzte Reise- und Transportzeiten drastisch.'
+      ],
+      terms: ['Dampfmaschine', 'Fabrik', 'Urbanisierung', 'Arbeiterklasse', 'Landflucht'],
+      merksatz: 'Neue Maschinen veränderten nicht nur die Produktion, sondern die gesamte Gesellschaft.'
+    }
+  ]
+};
+
+const FLASHCARDS = {
+  informatik: [
+    { front: 'Was bedeutet HTML?', back: 'HyperText Markup Language – die Sprache zur Strukturierung von Webseiten.' },
+    { front: 'Was bedeutet CSS?', back: 'Cascading Style Sheets – die Sprache zur Gestaltung von Webseiten.' },
+    { front: 'Wofür steht KI?', back: 'Künstliche Intelligenz – Systeme, die intelligentes Verhalten simulieren.' },
+    { front: 'Was ist ein Algorithmus?', back: 'Eine eindeutige, endliche Folge von Schritten zur Lösung eines Problems.' },
+    { front: 'Was speichert localStorage?', back: 'Daten, die im Browser dauerhaft gespeichert werden, auch nach dem Neuladen.' },
+    { front: 'Was ist eine Variable?', back: 'Ein benannter Speicherort für einen Wert in einem Programm.' },
+    { front: 'Was ist das DOM?', back: 'Document Object Model – die Struktur einer Webseite, auf die JavaScript zugreifen kann.' },
+    { front: 'Was ist maschinelles Lernen?', back: 'Ein Teilbereich der KI, bei dem Systeme aus Daten lernen statt fester Regeln.' }
+  ],
+  mathematik: [
+    { front: 'Was ist der Nenner eines Bruchs?', back: 'Die Zahl unter dem Bruchstrich – sie zeigt, in wie viele Teile geteilt wird.' },
+    { front: 'Formel für den Kreisumfang?', back: 'U = 2 · π · r' },
+    { front: 'Formel für die Rechtecksfläche?', back: 'Fläche = Länge · Breite' },
+    { front: 'Was ist eine Äquivalenzumformung?', back: 'Eine Umformung, die auf beiden Seiten einer Gleichung gleich angewendet wird.' },
+    { front: 'Was bedeutet "kürzen"?', back: 'Zähler und Nenner eines Bruchs durch dieselbe Zahl teilen.' },
+    { front: 'Was ist π (Pi) ungefähr?', back: 'Ungefähr 3,14159 – das Verhältnis von Kreisumfang zu Durchmesser.' }
+  ],
+  deutsch: [
+    { front: 'Was ist ein Nomen?', back: 'Ein Wort, das ein Ding, Lebewesen oder einen Begriff bezeichnet – wird großgeschrieben.' },
+    { front: 'Was ist das Prädikat?', back: 'Das Verb (die Satzaussage) eines Satzes.' },
+    { front: 'Wonach fragt das Subjekt?', back: '"Wer oder was tut etwas?"' },
+    { front: 'Was ist eine Metapher?', back: 'Ein sprachliches Bild, bei dem ein Begriff auf einen anderen übertragen wird.' },
+    { front: 'Was prüft die Umstellprobe?', back: 'Ob eine Wortgruppe ein zusammenhängendes Satzglied ist.' },
+    { front: 'Was gehört in eine Texteinleitung?', back: 'Autor, Titel, Textsorte, Erscheinungsjahr und Thema.' }
+  ],
+  englisch: [
+    { front: 'Wann benutzt man Present Simple?', back: 'Für Gewohnheiten, Routinen und allgemeine Wahrheiten.' },
+    { front: 'Wie bildet man Present Perfect?', back: 'have/has + Past Participle' },
+    { front: 'Nenne ein Signalwort für Present Perfect.', back: 'already, just, yet, ever, never, since, for' },
+    { front: 'Was ist eine Kollokation?', back: 'Eine typische Wortkombination, z. B. "make a decision".' },
+    { front: 'Was ist eine Wortfamilie?', back: 'Verwandte Wörter mit gleichem Wortstamm, z. B. happy – happiness.' },
+    { front: 'Übersetze: "She has never been to Spain."', back: 'Sie war noch nie in Spanien.' }
+  ],
+  medien: [
+    { front: 'Was ist Medienkompetenz?', back: 'Die Fähigkeit, Medien zu nutzen, zu verstehen, kritisch zu bewerten und zu gestalten.' },
+    { front: 'Was ist Quellenkritik?', back: 'Die Prüfung, wie glaubwürdig und zuverlässig eine Informationsquelle ist.' },
+    { front: 'Was ist Netiquette?', back: 'Ungeschriebene Verhaltensregeln für einen respektvollen Umgang im Internet.' },
+    { front: 'Was ist Cybermobbing?', back: 'Wiederholtes, absichtliches Belästigen oder Bloßstellen anderer über digitale Kanäle.' },
+    { front: 'Was ist eine Primärquelle?', back: 'Eine Quelle aus erster Hand, z. B. ein Originaldokument oder Augenzeugenbericht.' }
+  ],
+  geschichte: [
+    { front: 'Wann begann die Französische Revolution?', back: '1789' },
+    { front: 'Was geschah am 14. Juli 1789?', back: 'Der Sturm auf die Bastille in Paris.' },
+    { front: 'Was trennte 1961–1989 Ost- und West-Berlin?', back: 'Die Berliner Mauer.' },
+    { front: 'Wer waren die zwei Supermächte im Kalten Krieg?', back: 'Die USA und die Sowjetunion.' },
+    { front: 'Welche Erfindung trieb die Industrialisierung an?', back: 'Die Dampfmaschine.' },
+    { front: 'Was ist Urbanisierung?', back: 'Das Wachstum von Städten, oft durch Zuzug vom Land.' }
+  ]
+};
+
+const QUIZZES = {
+  informatik: [
+    { q: 'Was bedeutet CSS?', options: ['Computer Style System', 'Cascading Style Sheets', 'Creative Style Software', 'Code Styling System'], correct: 1, explain: 'CSS steht für Cascading Style Sheets und dient der Gestaltung von HTML-Seiten.' },
+    { q: 'Was bedeutet HTML?', options: ['HyperText Markup Language', 'High Text Modern Language', 'HyperTransfer Markup Logic', 'Home Tool Markup Language'], correct: 0, explain: 'HTML steht für HyperText Markup Language und beschreibt die Struktur von Webseiten.' },
+    { q: 'Welche Eigenschaft hat ein guter Algorithmus NICHT?', options: ['Eindeutigkeit', 'Endlichkeit', 'Zufälligkeit', 'Allgemeingültigkeit'], correct: 2, explain: 'Ein Algorithmus muss eindeutig und nachvollziehbar sein – nicht zufällig.' },
+    { q: 'Womit speichert eine Webseite Daten dauerhaft im Browser?', options: ['console.log', 'localStorage', 'alert()', 'CSS-Variablen'], correct: 1, explain: 'localStorage speichert Daten dauerhaft im Browser, auch nach dem Neuladen der Seite.' },
+    { q: 'Was ist ein Teilbereich der Künstlichen Intelligenz?', options: ['HTML', 'Maschinelles Lernen', 'CSS-Grid', 'HTTP'], correct: 1, explain: 'Maschinelles Lernen ist ein zentraler Teilbereich der KI.' },
+    { q: 'Womit macht man eine Webseite interaktiv?', options: ['HTML', 'CSS', 'JavaScript', 'JSON'], correct: 2, explain: 'JavaScript sorgt für Interaktivität, z. B. Reaktionen auf Klicks.' }
+  ],
+  mathematik: [
+    { q: 'Was ergibt 1/4 + 1/2?', options: ['1/6', '2/6', '3/4', '1/2'], correct: 2, explain: '1/4 + 2/4 = 3/4.' },
+    { q: 'Löse: 2x + 4 = 10', options: ['x = 2', 'x = 3', 'x = 4', 'x = 7'], correct: 1, explain: '2x = 6, also x = 3.' },
+    { q: 'Formel für die Kreisfläche?', options: ['2πr', 'πr²', 'πd', '2r²'], correct: 1, explain: 'Die Kreisfläche berechnet sich mit π · r².' },
+    { q: 'Was bedeutet "kürzen"?', options: ['Zähler und Nenner addieren', 'Zähler und Nenner durch dieselbe Zahl teilen', 'Den Nenner verdoppeln', 'Den Bruch umdrehen'], correct: 1, explain: 'Beim Kürzen werden Zähler und Nenner durch dieselbe Zahl geteilt.' },
+    { q: 'Umfang eines Rechtecks mit 5 cm × 3 cm?', options: ['8 cm', '15 cm', '16 cm', '30 cm'], correct: 2, explain: 'Umfang = 2 · (5 + 3) = 16 cm.' }
+  ],
+  deutsch: [
+    { q: 'Welche Wortart wird konjugiert?', options: ['Nomen', 'Verb', 'Adjektiv', 'Präposition'], correct: 1, explain: 'Verben werden konjugiert, z. B. ich gehe, du gehst.' },
+    { q: 'Wonach fragt das Akkusativobjekt?', options: ['Wer?', 'Wessen?', 'Wen oder was?', 'Wem?'], correct: 2, explain: 'Das Akkusativobjekt beantwortet die Frage "Wen oder was?".' },
+    { q: 'Was ist eine Metapher?', options: ['Ein Reim', 'Ein sprachliches Bild', 'Ein Satzglied', 'Eine Wortart'], correct: 1, explain: 'Eine Metapher überträgt einen Begriff bildhaft auf einen anderen.' },
+    { q: 'Was gehört NICHT in eine Texteinleitung?', options: ['Autor', 'Titel', 'Persönliche Meinung', 'Erscheinungsjahr'], correct: 2, explain: 'Die persönliche Meinung gehört in den Schluss, nicht in die Einleitung.' },
+    { q: 'Wie werden Nomen geschrieben?', options: ['Immer klein', 'Immer groß', 'Wie das vorherige Wort', 'Kursiv'], correct: 1, explain: 'Nomen werden im Deutschen großgeschrieben.' }
+  ],
+  englisch: [
+    { q: 'Present Simple bei "he/she/it": walk →', options: ['walk', 'walks', 'walked', 'walking'], correct: 1, explain: 'In der 3. Person Singular wird ein -s angehängt: walks.' },
+    { q: 'Present Perfect von "to see" (3. Pers.)?', options: ['has seen', 'have seen', 'has see', 'is seeing'], correct: 0, explain: 'Present Perfect = has/have + Past Participle: has seen.' },
+    { q: 'Welches Signalwort passt zu Present Perfect?', options: ['yesterday', 'already', 'next week', 'tomorrow'], correct: 1, explain: '"already" ist ein typisches Signalwort für Present Perfect.' },
+    { q: 'Was ist eine Kollokation?', options: ['Ein Reimwort', 'Eine typische Wortkombination', 'Ein Zeitwort', 'Ein Satzzeichen'], correct: 1, explain: 'Eine Kollokation ist eine typische, gemeinsam auftretende Wortkombination.' },
+    { q: 'Wortfamilie von "happy"?', options: ['happiness', 'happen', 'happily ever', 'happed'], correct: 0, explain: '"happiness" gehört zur Wortfamilie von "happy".' }
+  ],
+  medien: [
+    { q: 'Was prüft Quellenkritik?', options: ['Die Dateigröße', 'Die Glaubwürdigkeit einer Quelle', 'Die Downloadgeschwindigkeit', 'Das Videoformat'], correct: 1, explain: 'Quellenkritik prüft, wie glaubwürdig und zuverlässig eine Quelle ist.' },
+    { q: 'Was ist Netiquette?', options: ['Ein Videoformat', 'Regeln für respektvolles Verhalten online', 'Ein Browserplugin', 'Eine Programmiersprache'], correct: 1, explain: 'Netiquette bezeichnet ungeschriebene Verhaltensregeln im Internet.' },
+    { q: 'Was ist Cybermobbing?', options: ['Ein Computervirus', 'Wiederholtes Belästigen über digitale Kanäle', 'Ein WLAN-Problem', 'Eine Art Werbung'], correct: 1, explain: 'Cybermobbing ist wiederholtes, absichtliches Belästigen über digitale Kanäle.' },
+    { q: 'Was gehört zur Medienkompetenz?', options: ['Nur Medien konsumieren', 'Medien nutzen, verstehen, bewerten und gestalten', 'Nur technisches Wissen', 'Nur Mediengestaltung'], correct: 1, explain: 'Medienkompetenz umfasst Nutzung, Verständnis, Bewertung und Gestaltung.' },
+    { q: 'Was fehlt in digitaler Kommunikation oft?', options: ['Text', 'Mimik und Tonfall', 'Emojis', 'Links'], correct: 1, explain: 'Mimik, Gestik und Tonfall fehlen häufig, was zu Missverständnissen führen kann.' }
+  ],
+  geschichte: [
+    { q: 'Wann begann die Französische Revolution?', options: ['1689', '1789', '1889', '1919'], correct: 1, explain: 'Die Französische Revolution begann 1789.' },
+    { q: 'Was symbolisiert der Sturm auf die Bastille?', options: ['Ende des Kalten Krieges', 'Beginn der Französischen Revolution', 'Beginn der Industrialisierung', 'Ende der Monarchie in England'], correct: 1, explain: 'Der Sturm auf die Bastille 1789 gilt als Symbol für den Beginn der Revolution.' },
+    { q: 'Welche zwei Mächte standen sich im Kalten Krieg gegenüber?', options: ['Frankreich und Deutschland', 'USA und Sowjetunion', 'England und Spanien', 'China und Japan'], correct: 1, explain: 'Der Kalte Krieg war der Konflikt zwischen den USA und der Sowjetunion.' },
+    { q: 'Welche Erfindung trieb die Industrialisierung maßgeblich an?', options: ['Die Dampfmaschine', 'Das Telefon', 'Der Computer', 'Das Auto'], correct: 0, explain: 'Die Dampfmaschine war eine Schlüsselerfindung der Industrialisierung.' },
+    { q: 'Was bezeichnet Urbanisierung?', options: ['Landflucht und Städtewachstum', 'Ein Handelsabkommen', 'Eine Kriegstaktik', 'Eine Regierungsform'], correct: 0, explain: 'Urbanisierung beschreibt das Wachstum von Städten, oft durch Zuzug vom Land.' }
+  ]
+};
+
+const TASKS = [
+  { id: 't1', title: 'HTML-Grundgerüst erstellen', desc: 'Erstelle eine HTML-Seite mit head, body, Überschrift und Absatz.', subject: 'informatik', difficulty: 'Leicht', points: 15, due: '2026-09-08', defaultStatus: 'Offen' },
+  { id: 't2', title: 'CSS-Selektoren üben', desc: 'Style drei verschiedene Elemente mit Klassen- und ID-Selektoren.', subject: 'informatik', difficulty: 'Mittel', points: 20, due: '2026-09-10', defaultStatus: 'In Bearbeitung' },
+  { id: 't3', title: 'Sortieralgorithmus aufschreiben', desc: 'Beschreibe in eigenen Worten, wie Bubble Sort funktioniert.', subject: 'informatik', difficulty: 'Schwer', points: 25, due: '2026-09-14', defaultStatus: 'Offen' },
+  { id: 't4', title: 'Bruchrechnung: Übungsblatt', desc: 'Löse 10 Aufgaben zur Addition und Subtraktion von Brüchen.', subject: 'mathematik', difficulty: 'Leicht', points: 15, due: '2026-09-07', defaultStatus: 'Erledigt' },
+  { id: 't5', title: 'Gleichungen lösen', desc: 'Löse 8 lineare Gleichungen nach x auf.', subject: 'mathematik', difficulty: 'Mittel', points: 20, due: '2026-09-12', defaultStatus: 'Offen' },
+  { id: 't6', title: 'Wortarten markieren', desc: 'Markiere in einem Textabschnitt alle Nomen, Verben und Adjektive.', subject: 'deutsch', difficulty: 'Leicht', points: 15, due: '2026-09-09', defaultStatus: 'Offen' },
+  { id: 't7', title: 'Kurzgeschichte analysieren', desc: 'Schreibe eine kurze Analyse zu Aufbau und Stilmitteln.', subject: 'deutsch', difficulty: 'Schwer', points: 25, due: '2026-09-16', defaultStatus: 'In Bearbeitung' },
+  { id: 't8', title: 'Present Perfect Sätze bilden', desc: 'Bilde 10 Sätze im Present Perfect zu vorgegebenen Verben.', subject: 'englisch', difficulty: 'Mittel', points: 20, due: '2026-09-11', defaultStatus: 'Offen' },
+  { id: 't9', title: 'Quellen vergleichen', desc: 'Vergleiche zwei Nachrichtenquellen zum gleichen Thema.', subject: 'medien', difficulty: 'Mittel', points: 20, due: '2026-09-13', defaultStatus: 'Offen' },
+  { id: 't10', title: 'Zeitstrahl Französische Revolution', desc: 'Erstelle einen Zeitstrahl mit fünf zentralen Ereignissen.', subject: 'geschichte', difficulty: 'Mittel', points: 20, due: '2026-09-15', defaultStatus: 'Offen' }
+];
+
+const LEVELS = [
+  { level: 1, name: 'Anfänger',     minXp: 0   },
+  { level: 2, name: 'Lernender',    minXp: 100 },
+  { level: 3, name: 'Fortgeschritten', minXp: 250 },
+  { level: 4, name: 'Profi',        minXp: 500 },
+  { level: 5, name: 'Meister',      minXp: 900 }
+];
+
+const XP = { lesson: 20, quizComplete: 30, quizCorrect: 10, flashcard: 5, task: 20 };
+
+/* ==========================================================================
+   2. STATE (localStorage)
+   ========================================================================== */
+
+const STORAGE_KEY = 'lernpfad_state_v1';
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function defaultState() {
+  const taskStatus = {};
+  TASKS.forEach(t => { taskStatus[t.id] = t.defaultStatus; });
+  return {
+    userName: '',
+    theme: 'light',
+    xp: 0,
+    dailyXp: {},               // { '2026-09-02': 40, ... }
+    streak: { count: 0, lastDate: null },
+    completedLessons: {},      // { informatik: ['was-ist-informatik', ...] }
+    lastLesson: null,          // { subjectId, topicId }
+    flashcardKnown: {},        // { informatik: ['front text', ...] }
+    quizBest: {},              // { informatik: { percent, score } }
+    quizzesTaken: 0,
+    taskStatus,
+    lessonsCompletedCount: 0
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed);
+  } catch (e) {
+    console.warn('Konnte gespeicherten Lernstand nicht laden, starte neu.', e);
+    return defaultState();
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Speichern fehlgeschlagen (localStorage evtl. nicht verfügbar).', e);
+  }
+}
+
+/* ---- XP / Level / Streak ---- */
+
+function getLevelInfo(xp) {
+  let current = LEVELS[0];
+  let next = LEVELS[1] || null;
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].minXp) {
+      current = LEVELS[i];
+      next = LEVELS[i + 1] || null;
+    }
+  }
+  return { current, next };
+}
+
+function addXp(amount) {
+  state.xp += amount;
+  const t = todayStr();
+  state.dailyXp[t] = (state.dailyXp[t] || 0) + amount;
+  registerStudyActivity();
+  saveState();
+}
+
+function registerStudyActivity() {
+  const t = todayStr();
+  const last = state.streak.lastDate;
+  if (last === t) return; // schon heute gezählt
+  if (!last) {
+    state.streak.count = 1;
+  } else {
+    const lastDate = new Date(last + 'T00:00:00');
+    const todayDate = new Date(t + 'T00:00:00');
+    const diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+    state.streak.count = diffDays === 1 ? state.streak.count + 1 : 1;
+  }
+  state.streak.lastDate = t;
+}
+
+/* ==========================================================================
+   3. UTILITIES
+   ========================================================================== */
+
+function $(sel, ctx) { return (ctx || document).querySelector(sel); }
+function $all(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(msg) {
+  const toast = $('#toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function subjectById(id) { return SUBJECTS.find(s => s.id === id); }
+
+function subjectTopics(subjectId) { return LESSONS[subjectId] || []; }
+
+function subjectProgressPercent(subjectId) {
+  const topics = subjectTopics(subjectId);
+  if (!topics.length) return 0;
+  const done = (state.completedLessons[subjectId] || []).length;
+  return Math.round((done / topics.length) * 100);
+}
+
+function overallProgressPercent() {
+  let totalTopics = 0, doneTopics = 0;
+  SUBJECTS.forEach(s => {
+    const topics = subjectTopics(s.id);
+    totalTopics += topics.length;
+    doneTopics += (state.completedLessons[s.id] || []).length;
+  });
+  return totalTopics ? Math.round((doneTopics / totalTopics) * 100) : 0;
+}
+
+function totalCompletedTasks() {
+  return Object.values(state.taskStatus).filter(s => s === 'Erledigt').length;
+}
+
+function totalQuizPoints() {
+  return Object.values(state.quizBest).reduce((sum, q) => sum + (q.score || 0), 0);
+}
+
+function estimatedMinutes() {
+  const lessons = Object.values(state.completedLessons).reduce((a, arr) => a + arr.length, 0);
+  const cards = Object.values(state.flashcardKnown).reduce((a, arr) => a + arr.length, 0);
+  return lessons * 8 + state.quizzesTaken * 5 + cards * 1;
+}
+
+function formatMinutes(min) {
+  if (min < 60) return min + ' min';
+  const h = Math.floor(min / 60), m = min % 60;
+  return h + ' h ' + (m ? m + ' min' : '');
+}
+
+/* ==========================================================================
+   4. THEME (Dark / Light Mode)
+   ========================================================================== */
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const isDark = theme === 'dark';
+  $('#topThemeIcon').textContent = isDark ? '☀️' : '🌙';
+  $('#desktopThemeIcon').textContent = isDark ? '☀️' : '🌙';
+  $('#desktopThemeLabel').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  const sw = $('#settingsThemeSwitch');
+  if (sw) sw.setAttribute('aria-checked', String(isDark));
+}
+
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(state.theme);
+  saveState();
+}
+
+/* ==========================================================================
+   5. NAVIGATION
+   ========================================================================== */
+
+let currentPage = 'dashboard';
+
+function goToPage(pageId) {
+  currentPage = pageId;
+  $all('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + pageId));
+  $all('.nav-item').forEach(n => {
+    const active = n.dataset.page === pageId;
+    n.classList.toggle('active', active);
+    if (active) n.setAttribute('aria-current', 'page'); else n.removeAttribute('aria-current');
+  });
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+
+  if (pageId === 'dashboard') renderDashboard();
+  if (pageId === 'lernen') renderLernenSubjects();
+  if (pageId === 'lernkarten') renderFlashcardSubjects();
+  if (pageId === 'quiz') renderQuizSubjects();
+  if (pageId === 'aufgaben') renderTasks();
+  if (pageId === 'fortschritt') renderProgressPage();
+  if (pageId === 'einstellungen') renderSettings();
+}
+
+function openSidebar() {
+  $('#sidebar').classList.add('open');
+  $('#sidebarOverlay').classList.add('show');
+  $('#hamburgerBtn').classList.add('open');
+  $('#hamburgerBtn').setAttribute('aria-expanded', 'true');
+}
+function closeSidebar() {
+  $('#sidebar').classList.remove('open');
+  $('#sidebarOverlay').classList.remove('show');
+  $('#hamburgerBtn').classList.remove('open');
+  $('#hamburgerBtn').setAttribute('aria-expanded', 'false');
+}
+
+/* ==========================================================================
+   6. DASHBOARD
+   ========================================================================== */
+
+function renderDashboard() {
+  const name = state.userName ? state.userName : '';
+  $('#greeting').textContent = name ? `Willkommen zurück, ${name}! 👋` : 'Willkommen zurück! 👋';
+
+  const stats = [
+    { icon: '📈', value: overallProgressPercent() + '%', label: 'Gesamtfortschritt' },
+    { icon: '☀️', value: (state.dailyXp[todayStr()] || 0) + ' XP', label: 'Heute gelernt' },
+    { icon: '⏱️', value: formatMinutes(estimatedMinutes()), label: 'Lernzeit gesamt' },
+    { icon: '☑️', value: totalCompletedTasks() + '/' + TASKS.length, label: 'Aufgaben erledigt' },
+    { icon: '🏆', value: totalQuizPoints(), label: 'Quiz-Punkte' },
+    { icon: '🔥', value: state.streak.count, label: 'Tage Lernserie' }
+  ];
+  $('#dashboardStats').innerHTML = stats.map(statCardHtml).join('');
+
+  renderContinueCard();
+  renderLevelBlock();
+
+  $('#subjectGrid').innerHTML = SUBJECTS.map(subjectCardHtml).join('');
+  $all('#subjectGrid .subject-card').forEach(card => {
+    card.addEventListener('click', () => {
+      goToPage('lernen');
+      openSubjectTopics(card.dataset.subject);
+    });
+  });
+
+  $('#sidebarStreak').textContent = state.streak.count;
+  $('#sidebarXP').textContent = state.xp;
+}
+
+function statCardHtml(s) {
+  return `<div class="stat-card">
+    <span class="stat-icon">${s.icon}</span>
+    <span class="stat-value">${s.value}</span>
+    <span class="stat-label">${s.label}</span>
+  </div>`;
+}
+
+function subjectCardHtml(subject) {
+  const pct = subjectProgressPercent(subject.id);
+  return `<button class="subject-card" data-subject="${subject.id}">
+    <span class="subject-icon" style="background:var(--color-primary-tint)">${subject.icon}</span>
+    <h3>${subject.name}</h3>
+    <p>${subjectTopics(subject.id).length} Themen</p>
+    <div class="subject-progress-row">
+      <div class="mini-progress-track"><div class="mini-progress-fill" style="width:${pct}%"></div></div>
+      <span>${pct}%</span>
+    </div>
+  </button>`;
+}
+
+function findContinueTarget() {
+  if (state.lastLesson) {
+    const topics = subjectTopics(state.lastLesson.subjectId);
+    const idx = topics.findIndex(t => t.id === state.lastLesson.topicId);
+    if (idx !== -1) return { subjectId: state.lastLesson.subjectId, index: idx };
+  }
+  // Fallback: erstes nicht abgeschlossenes Thema im ersten Fach
+  for (const s of SUBJECTS) {
+    const topics = subjectTopics(s.id);
+    const doneIds = state.completedLessons[s.id] || [];
+    const idx = topics.findIndex(t => !doneIds.includes(t.id));
+    if (idx !== -1) return { subjectId: s.id, index: idx };
+  }
+  return null;
+}
+
+function renderContinueCard() {
+  const target = findContinueTarget();
+  const el = $('#continueCard');
+  if (!target) {
+    el.innerHTML = `<p style="margin:0">🎉 Du hast alle verfügbaren Lektionen abgeschlossen!</p>`;
+    return;
+  }
+  const subject = subjectById(target.subjectId);
+  const topic = subjectTopics(target.subjectId)[target.index];
+  const doneIds = state.completedLessons[target.subjectId] || [];
+  const pct = Math.round((doneIds.length / subjectTopics(target.subjectId).length) * 100);
+  el.innerHTML = `
+    <div class="continue-info" style="width:100%">
+      <span style="font-size:.78rem;color:var(--color-primary);font-weight:700">${subject.icon} ${subject.name}</span>
+      <strong>${topic.title}</strong>
+      <span>Fortschritt im Fach: ${pct}%</span>
+      <div class="continue-progress-wrap">
+        <div class="mini-progress-track"><div class="mini-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="continueLearnBtn">Weiterlernen →</button>
+  `;
+  $('#continueLearnBtn').addEventListener('click', () => {
+    goToPage('lernen');
+    openLesson(target.subjectId, target.index);
+  });
+}
+
+function renderLevelBlock() {
+  const { current, next } = getLevelInfo(state.xp);
+  $('#levelBadge').textContent = current.level;
+  $('#levelName').textContent = current.name;
+  if (next) {
+    const span = next.minXp - current.minXp;
+    const progressed = state.xp - current.minXp;
+    const pct = Math.min(100, Math.round((progressed / span) * 100));
+    $('#xpBarFill').style.width = pct + '%';
+    $('#levelXpText').textContent = `${state.xp} / ${next.minXp} XP bis Level ${next.level} (${next.name})`;
+  } else {
+    $('#xpBarFill').style.width = '100%';
+    $('#levelXpText').textContent = `${state.xp} XP — höchstes Level erreicht! 🏆`;
+  }
+}
+
+/* ==========================================================================
+   7. LERNBEREICH (Lektionen)
+   ========================================================================== */
+
+let lernenCurrentSubject = null;
+let lernenCurrentIndex = 0;
+
+function renderLernenSubjects() {
+  $('#lernenSubjectView').classList.remove('hidden');
+  $('#lernenTopicView').classList.add('hidden');
+  $('#lernenLessonView').classList.add('hidden');
+  $('#lernenSubjectGrid').innerHTML = SUBJECTS.map(subjectCardHtml).join('');
+  $all('#lernenSubjectGrid .subject-card').forEach(card => {
+    card.addEventListener('click', () => openSubjectTopics(card.dataset.subject));
+  });
+}
+
+function openSubjectTopics(subjectId) {
+  lernenCurrentSubject = subjectId;
+  $('#lernenSubjectView').classList.add('hidden');
+  $('#lernenLessonView').classList.add('hidden');
+  $('#lernenTopicView').classList.remove('hidden');
+
+  const subject = subjectById(subjectId);
+  $('#topicViewSubjectName').textContent = `${subject.icon} ${subject.name}`;
+
+  const topics = subjectTopics(subjectId);
+  const doneIds = state.completedLessons[subjectId] || [];
+
+  if (!topics.length) {
+    $('#topicList').innerHTML = `<p class="empty-state">Noch keine Lernaktivitäten vorhanden.</p>`;
+    return;
+  }
+
+  $('#topicList').innerHTML = topics.map((topic, i) => {
+    const done = doneIds.includes(topic.id);
+    return `<button class="topic-row" data-index="${i}">
+      <div class="topic-row-left">
+        <span class="topic-index">${i + 1}</span>
+        <div>
+          <div class="topic-row-title">${topic.title}</div>
+          <div class="topic-row-status">${done ? 'Abgeschlossen' : 'Noch offen'}</div>
+        </div>
+      </div>
+      ${done ? '<span class="badge-done">✓ Fertig</span>' : ''}
+    </button>`;
+  }).join('');
+
+  $all('#topicList .topic-row').forEach(row => {
+    row.addEventListener('click', () => openLesson(subjectId, Number(row.dataset.index)));
+  });
+}
+
+function openLesson(subjectId, index) {
+  lernenCurrentSubject = subjectId;
+  lernenCurrentIndex = index;
+  const topics = subjectTopics(subjectId);
+  const topic = topics[index];
+  if (!topic) return;
+
+  $('#lernenSubjectView').classList.add('hidden');
+  $('#lernenTopicView').classList.add('hidden');
+  $('#lernenLessonView').classList.remove('hidden');
+
+  state.lastLesson = { subjectId, topicId: topic.id };
+  saveState();
+
+  const doneIds = state.completedLessons[subjectId] || [];
+  const isDone = doneIds.includes(topic.id);
+
+  $('#lessonKicker').textContent = `${subjectById(subjectId).name} · Thema ${index + 1} von ${topics.length}`;
+  $('#lessonTitle').textContent = topic.title;
+  $('#lessonGoal').textContent = topic.goal;
+  $('#lessonExplanation').innerHTML = topic.explanation.map(p => `<p>${p}</p>`).join('');
+  $('#lessonExamples').innerHTML = `<ul>${topic.examples.map(e => `<li>${e}</li>`).join('')}</ul>`;
+  $('#lessonTerms').innerHTML = topic.terms.map(t => `<span class="term-chip">${escapeHtml(t)}</span>`).join('');
+  $('#lessonMerksatz').textContent = topic.merksatz;
+  $('#lessonProgressFill').style.width = Math.round(((index + 1) / topics.length) * 100) + '%';
+
+  const completeBtn = $('#completeLessonBtn');
+  completeBtn.textContent = isDone ? 'Kapitel abgeschlossen ✓' : 'Kapitel abschließen ✓';
+  completeBtn.disabled = isDone;
+
+  $('#prevLessonBtn').disabled = index === 0;
+  $('#nextLessonBtn').disabled = index === topics.length - 1;
+}
+
+function completeCurrentLesson() {
+  const subjectId = lernenCurrentSubject;
+  const topics = subjectTopics(subjectId);
+  const topic = topics[lernenCurrentIndex];
+  if (!topic) return;
+
+  if (!state.completedLessons[subjectId]) state.completedLessons[subjectId] = [];
+  if (!state.completedLessons[subjectId].includes(topic.id)) {
+    state.completedLessons[subjectId].push(topic.id);
+    state.lessonsCompletedCount++;
+    addXp(XP.lesson);
+    showToast(`+${XP.lesson} XP · Kapitel abgeschlossen!`);
+    saveState();
+  }
+  openLesson(subjectId, lernenCurrentIndex);
+}
+
+/* ==========================================================================
+   8. LERNKARTEN
+   ========================================================================== */
+
+let fcSubject = null;
+let fcDeck = [];
+let fcIndex = 0;
+let fcFlipped = false;
+
+function renderFlashcardSubjects() {
+  $('#flashcardSubjectView').classList.remove('hidden');
+  $('#flashcardStudyView').classList.add('hidden');
+  const withCards = SUBJECTS.filter(s => (FLASHCARDS[s.id] || []).length);
+  $('#flashcardSubjectGrid').innerHTML = withCards.map(s => {
+    const total = FLASHCARDS[s.id].length;
+    const known = (state.flashcardKnown[s.id] || []).length;
+    return `<button class="subject-card" data-subject="${s.id}">
+      <span class="subject-icon" style="background:var(--color-primary-tint)">${s.icon}</span>
+      <h3>${s.name}</h3>
+      <p>${total} Lernkarten</p>
+      <div class="subject-progress-row">
+        <div class="mini-progress-track"><div class="mini-progress-fill" style="width:${total ? Math.round(known / total * 100) : 0}%"></div></div>
+        <span>${known}/${total}</span>
+      </div>
+    </button>`;
+  }).join('');
+  $all('#flashcardSubjectGrid .subject-card').forEach(card => {
+    card.addEventListener('click', () => startFlashcards(card.dataset.subject));
+  });
+}
+
+function startFlashcards(subjectId) {
+  fcSubject = subjectId;
+  const known = state.flashcardKnown[subjectId] || [];
+  fcDeck = (FLASHCARDS[subjectId] || []).filter(c => !known.includes(c.front));
+  fcIndex = 0;
+  fcFlipped = false;
+
+  $('#flashcardSubjectView').classList.add('hidden');
+  $('#flashcardStudyView').classList.remove('hidden');
+  $('#flashcardEmptyState').classList.toggle('hidden', fcDeck.length > 0);
+  $('#flashcard').classList.toggle('hidden', fcDeck.length === 0);
+  $all('.flashcard-actions')[0].classList.toggle('hidden', fcDeck.length === 0);
+  $('#nextCardBtn').classList.toggle('hidden', fcDeck.length === 0);
+
+  if (fcDeck.length) renderFlashcard();
+}
+
+function renderFlashcard() {
+  const card = fcDeck[fcIndex];
+  if (!card) return;
+  $('#flashcard').classList.remove('flipped');
+  fcFlipped = false;
+  $('#flashcardFront').textContent = card.front;
+  $('#flashcardBack').textContent = card.back;
+  $('#flashcardCounter').textContent = `Karte ${fcIndex + 1} / ${fcDeck.length}`;
+  $('#flashcardProgressFill').style.width = Math.round(((fcIndex) / fcDeck.length) * 100) + '%';
+}
+
+function flipFlashcard() {
+  if (!fcDeck.length) return;
+  fcFlipped = !fcFlipped;
+  $('#flashcard').classList.toggle('flipped', fcFlipped);
+}
+
+function markFlashcard(known) {
+  const card = fcDeck[fcIndex];
+  if (!card) return;
+  if (known) {
+    if (!state.flashcardKnown[fcSubject]) state.flashcardKnown[fcSubject] = [];
+    if (!state.flashcardKnown[fcSubject].includes(card.front)) {
+      state.flashcardKnown[fcSubject].push(card.front);
+      addXp(XP.flashcard);
+      showToast(`+${XP.flashcard} XP · Karte gelernt!`);
+    }
+    saveState();
+    fcDeck.splice(fcIndex, 1);
+    if (fcIndex >= fcDeck.length) fcIndex = 0;
+  } else {
+    // "Noch einmal": Karte ans Ende der Runde verschieben
+    const [c] = fcDeck.splice(fcIndex, 1);
+    fcDeck.push(c);
+    if (fcIndex >= fcDeck.length) fcIndex = 0;
+  }
+
+  if (!fcDeck.length) {
+    $('#flashcardEmptyState').classList.remove('hidden');
+    $('#flashcard').classList.add('hidden');
+    $all('.flashcard-actions')[0].classList.add('hidden');
+    $('#nextCardBtn').classList.add('hidden');
+    $('#flashcardProgressFill').style.width = '100%';
+  } else {
+    renderFlashcard();
+  }
+}
+
+function nextFlashcard() {
+  if (!fcDeck.length) return;
+  fcIndex = (fcIndex + 1) % fcDeck.length;
+  renderFlashcard();
+}
+
+/* ==========================================================================
+   9. QUIZ
+   ========================================================================== */
+
+let quizSubject = null;
+let quizQuestions = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizCorrectCount = 0;
+let quizWrongCount = 0;
+let quizAnswered = false;
+
+function renderQuizSubjects() {
+  $('#quizSubjectView').classList.remove('hidden');
+  $('#quizPlayView').classList.add('hidden');
+  $('#quizResultView').classList.add('hidden');
+
+  const withQuiz = SUBJECTS.filter(s => (QUIZZES[s.id] || []).length);
+  $('#quizSubjectGrid').innerHTML = withQuiz.map(s => {
+    const best = state.quizBest[s.id];
+    return `<button class="subject-card" data-subject="${s.id}">
+      <span class="subject-icon" style="background:var(--color-primary-tint)">${s.icon}</span>
+      <h3>${s.name}</h3>
+      <p>${QUIZZES[s.id].length} Fragen</p>
+      <div class="subject-progress-row">
+        <span style="margin-left:0">${best ? 'Beste Punktzahl: ' + best.percent + '%' : 'Noch nicht gestartet'}</span>
+      </div>
+    </button>`;
+  }).join('');
+  $all('#quizSubjectGrid .subject-card').forEach(card => {
+    card.addEventListener('click', () => startQuiz(card.dataset.subject));
+  });
+}
+
+function startQuiz(subjectId) {
+  quizSubject = subjectId;
+  quizQuestions = QUIZZES[subjectId] || [];
+  quizIndex = 0;
+  quizScore = 0;
+  quizCorrectCount = 0;
+  quizWrongCount = 0;
+
+  $('#quizSubjectView').classList.add('hidden');
+  $('#quizResultView').classList.add('hidden');
+  $('#quizPlayView').classList.remove('hidden');
+
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizQuestions[quizIndex];
+  quizAnswered = false;
+  $('#quizProgressText').textContent = `Frage ${quizIndex + 1} / ${quizQuestions.length}`;
+  $('#quizScoreText').textContent = `Punkte: ${quizScore}`;
+  $('#quizProgressFill').style.width = Math.round((quizIndex / quizQuestions.length) * 100) + '%';
+  $('#quizQuestion').textContent = q.q;
+  $('#quizFeedback').classList.add('hidden');
+
+  const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  $('#quizOptions').innerHTML = q.options.map((opt, i) =>
+    `<button class="quiz-option" data-index="${i}">
+      <span class="opt-letter">${letters[i]}</span><span>${escapeHtml(opt)}</span>
+    </button>`
+  ).join('');
+
+  $all('#quizOptions .quiz-option').forEach(btn => {
+    btn.addEventListener('click', () => selectQuizOption(Number(btn.dataset.index)));
+  });
+}
+
+function selectQuizOption(index) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQuestions[quizIndex];
+  const buttons = $all('#quizOptions .quiz-option');
+
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === index && index !== q.correct) btn.classList.add('wrong');
+  });
+
+  const correct = index === q.correct;
+  if (correct) {
+    quizScore += XP.quizCorrect;
+    quizCorrectCount++;
+    addXp(XP.quizCorrect);
+  } else {
+    quizWrongCount++;
+  }
+  $('#quizScoreText').textContent = `Punkte: ${quizScore}`;
+
+  $('#quizFeedbackText').innerHTML = correct
+    ? `<strong style="color:var(--color-success)">Richtig! ✓</strong> ${q.explain}`
+    : `<strong style="color:var(--color-danger)">Leider falsch.</strong> Richtige Antwort: „${escapeHtml(q.options[q.correct])}". ${q.explain}`;
+  $('#quizFeedback').classList.remove('hidden');
+  saveState();
+}
+
+function nextQuizQuestion() {
+  quizIndex++;
+  if (quizIndex >= quizQuestions.length) {
+    finishQuiz();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function finishQuiz() {
+  state.quizzesTaken++;
+  addXp(XP.quizComplete);
+  const percent = Math.round((quizCorrectCount / quizQuestions.length) * 100);
+  const prevBest = state.quizBest[quizSubject];
+  if (!prevBest || quizScore + XP.quizComplete > prevBest.score) {
+    state.quizBest[quizSubject] = { percent, score: quizScore + XP.quizComplete };
+  }
+  saveState();
+  showToast(`+${XP.quizComplete} XP · Quiz abgeschlossen!`);
+
+  $('#quizPlayView').classList.add('hidden');
+  $('#quizResultView').classList.remove('hidden');
+  $('#resultRing').style.setProperty('--pct', percent);
+  $('#resultPercent').textContent = percent + '%';
+  $('#resultScore').textContent = quizScore + XP.quizComplete;
+  $('#resultCorrect').textContent = quizCorrectCount;
+  $('#resultWrong').textContent = quizWrongCount;
+}
+
+/* ==========================================================================
+   10. AUFGABEN
+   ========================================================================== */
+
+let taskFilter = 'alle';
+
+function renderTasks() {
+  const filtered = TASKS.filter(t => taskFilter === 'alle' || state.taskStatus[t.id] === taskFilter);
+  $('#taskEmptyState').classList.toggle('hidden', filtered.length > 0);
+
+  $('#taskList').innerHTML = filtered.map(task => {
+    const status = state.taskStatus[task.id];
+    const subject = subjectById(task.subject);
+    const diffClass = task.difficulty === 'Leicht' ? 'tag-easy' : task.difficulty === 'Mittel' ? 'tag-medium' : 'tag-hard';
+    const statusClass = status === 'Erledigt' ? 'tag-status-done' : status === 'In Bearbeitung' ? 'tag-status-progress' : 'tag-status-open';
+    const checkClass = status === 'Erledigt' ? 'done' : status === 'In Bearbeitung' ? 'progress' : '';
+    return `<div class="task-card">
+      <button class="task-check ${checkClass}" data-id="${task.id}" aria-label="Aufgabenstatus umschalten">${status === 'Erledigt' ? '✓' : ''}</button>
+      <div class="task-body">
+        <div class="task-title ${status === 'Erledigt' ? 'done' : ''}">${task.title}</div>
+        <div class="task-desc">${task.desc}</div>
+        <div class="task-meta">
+          <span class="tag">${subject.icon} ${subject.name}</span>
+          <span class="tag ${diffClass}">${task.difficulty}</span>
+          <span class="tag">+${task.points} XP</span>
+          <span class="tag">Fällig: ${formatDate(task.due)}</span>
+          <select class="task-status-select" data-id="${task.id}" aria-label="Status von ${task.title}">
+            <option value="Offen" ${status === 'Offen' ? 'selected' : ''}>Offen</option>
+            <option value="In Bearbeitung" ${status === 'In Bearbeitung' ? 'selected' : ''}>In Bearbeitung</option>
+            <option value="Erledigt" ${status === 'Erledigt' ? 'selected' : ''}>Erledigt</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  $all('.task-check').forEach(btn => {
+    btn.addEventListener('click', () => cycleTaskStatus(btn.dataset.id));
+  });
+  $all('.task-status-select').forEach(sel => {
+    sel.addEventListener('change', () => setTaskStatus(sel.dataset.id, sel.value));
+  });
+}
+
+function cycleTaskStatus(taskId) {
+  const order = ['Offen', 'In Bearbeitung', 'Erledigt'];
+  const current = state.taskStatus[taskId];
+  const next = order[(order.indexOf(current) + 1) % order.length];
+  setTaskStatus(taskId, next);
+}
+
+function setTaskStatus(taskId, status) {
+  const wasCompleted = state.taskStatus[taskId] === 'Erledigt';
+  state.taskStatus[taskId] = status;
+  if (status === 'Erledigt' && !wasCompleted) {
+    const task = TASKS.find(t => t.id === taskId);
+    addXp(task ? task.points : XP.task);
+    showToast(`+${task ? task.points : XP.task} XP · Aufgabe erledigt!`);
+  }
+  saveState();
+  renderTasks();
+}
+
+function formatDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/* ==========================================================================
+   11. FORTSCHRITT
+   ========================================================================== */
+
+function renderProgressPage() {
+  const stats = [
+    { icon: '📈', value: overallProgressPercent() + '%', label: 'Gesamtfortschritt' },
+    { icon: '🧠', value: Object.values(state.completedLessons).reduce((a, arr) => a + arr.length, 0), label: 'Lektionen gelernt' },
+    { icon: '▤', value: Object.values(state.flashcardKnown).reduce((a, arr) => a + arr.length, 0), label: 'Lernkarten gelernt' },
+    { icon: '✓', value: state.quizzesTaken, label: 'Quizze absolviert' },
+    { icon: '☑️', value: totalCompletedTasks(), label: 'Aufgaben erledigt' },
+    { icon: '🔥', value: state.streak.count, label: 'Tage Lernserie' }
+  ];
+  $('#progressStats').innerHTML = stats.map(statCardHtml).join('');
+
+  $('#subjectProgressList').innerHTML = SUBJECTS.map(s => {
+    const pct = subjectProgressPercent(s.id);
+    return `<div class="subject-progress-item">
+      <div class="row-top"><span>${s.icon} ${s.name}</span><span>${pct}%</span></div>
+      <div class="mini-progress-track"><div class="mini-progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  renderActivityChart();
+}
+
+function renderActivityChart() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    days.push({ iso, label: d.toLocaleDateString('de-DE', { weekday: 'short' }), xp: state.dailyXp[iso] || 0 });
+  }
+  const max = Math.max(1, ...days.map(d => d.xp));
+  $('#activityChart').innerHTML = days.map(d => {
+    const h = Math.round((d.xp / max) * 110) + (d.xp > 0 ? 6 : 2);
+    return `<div class="bar-col">
+      <div class="bar-fill" style="height:${h}px" title="${d.xp} XP"></div>
+      <span>${d.label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ==========================================================================
+   12. EINSTELLUNGEN
+   ========================================================================== */
+
+function renderSettings() {
+  $('#settingsThemeSwitch').setAttribute('aria-checked', String(state.theme === 'dark'));
+  $('#userNameInput').value = state.userName || '';
+}
+
+function resetAllData() {
+  const confirmed = confirm('Möchtest du wirklich deinen gesamten Lernfortschritt löschen? Das kann nicht rückgängig gemacht werden.');
+  if (!confirmed) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = defaultState();
+  applyTheme(state.theme);
+  showToast('Lernfortschritt wurde zurückgesetzt.');
+  goToPage('dashboard');
+}
+
+/* ==========================================================================
+   13. INITIALISIERUNG & EVENT-BINDUNGEN
+   ========================================================================== */
+
+function initNavigation() {
+  $all('.nav-item').forEach(item => {
+    item.addEventListener('click', () => goToPage(item.dataset.page));
+  });
+  $('#hamburgerBtn').addEventListener('click', () => {
+    $('#sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  $('#sidebarOverlay').addEventListener('click', closeSidebar);
+}
+
+function initThemeControls() {
+  $('#topThemeToggle').addEventListener('click', toggleTheme);
+  $('#desktopThemeToggle').addEventListener('click', toggleTheme);
+  $('#settingsThemeSwitch').addEventListener('click', toggleTheme);
+}
+
+function initLernenControls() {
+  $('#backToSubjects').addEventListener('click', () => {
+    $('#lernenTopicView').classList.add('hidden');
+    $('#lernenSubjectView').classList.remove('hidden');
+  });
+  $('#backToTopics').addEventListener('click', () => {
+    $('#lernenLessonView').classList.add('hidden');
+    openSubjectTopics(lernenCurrentSubject);
+  });
+  $('#completeLessonBtn').addEventListener('click', completeCurrentLesson);
+  $('#prevLessonBtn').addEventListener('click', () => {
+    if (lernenCurrentIndex > 0) openLesson(lernenCurrentSubject, lernenCurrentIndex - 1);
+  });
+  $('#nextLessonBtn').addEventListener('click', () => {
+    const topics = subjectTopics(lernenCurrentSubject);
+    if (lernenCurrentIndex < topics.length - 1) openLesson(lernenCurrentSubject, lernenCurrentIndex + 1);
+  });
+}
+
+function initFlashcardControls() {
+  $('#backFromFlashcards').addEventListener('click', renderFlashcardSubjects);
+  $('#flashcard').addEventListener('click', flipFlashcard);
+  $('#flashcard').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flipFlashcard(); }
+  });
+  $('#knewItBtn').addEventListener('click', () => markFlashcard(true));
+  $('#knewNotBtn').addEventListener('click', () => markFlashcard(false));
+  $('#nextCardBtn').addEventListener('click', nextFlashcard);
+  $('#restartFlashcardsBtn').addEventListener('click', () => startFlashcards(fcSubject));
+}
+
+function initQuizControls() {
+  $('#backFromQuiz').addEventListener('click', renderQuizSubjects);
+  $('#quizNextBtn').addEventListener('click', nextQuizQuestion);
+  $('#quizBackToSubjectsBtn').addEventListener('click', renderQuizSubjects);
+  $('#retryQuizBtn').addEventListener('click', () => startQuiz(quizSubject));
+}
+
+function initTaskControls() {
+  $all('.chip-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      taskFilter = btn.dataset.filter;
+      $all('.chip-filter').forEach(b => b.classList.toggle('active', b === btn));
+      renderTasks();
+    });
+  });
+}
+
+function initSettingsControls() {
+  $('#userNameInput').addEventListener('input', e => {
+    state.userName = e.target.value.trim();
+    saveState();
+  });
+  $('#resetDataBtn').addEventListener('click', resetAllData);
+}
+
+function initApp() {
+  applyTheme(state.theme);
+  initNavigation();
+  initThemeControls();
+  initLernenControls();
+  initFlashcardControls();
+  initQuizControls();
+  initTaskControls();
+  initSettingsControls();
+  goToPage('dashboard');
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
